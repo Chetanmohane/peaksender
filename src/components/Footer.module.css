@@ -1,0 +1,91 @@
+.footer {
+  background: #06070a;
+  padding: 80px 2rem 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 4rem;
+  margin-bottom: 4rem;
+}
+
+.brand {
+  max-width: 300px;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: white;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.tagline {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.linksGrid {
+  display: flex;
+  gap: 6rem;
+}
+
+.linkGroup h4 {
+  color: white;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.linkGroup a {
+  display: block;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+  transition: color 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.linkGroup a:hover {
+  color: var(--accent);
+}
+
+.bottom {
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bottom p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+  .top {
+    flex-direction: column;
+    gap: 3rem;
+  }
+  .linksGrid {
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .linksGrid {
+    gap: 2rem;
+  }
+  .linkGroup {
+    flex: 1 1 140px;
+  }
+}

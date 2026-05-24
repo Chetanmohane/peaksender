@@ -1,0 +1,60 @@
+.hero {
+  padding: 160px 2rem 60px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, rgba(61, 90, 254, 0.1) 0%, transparent 70%);
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.content {
+  padding: 40px 2rem 100px;
+}
+
+.updateCard {
+  padding: 2rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.newservice { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.update { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.disabled { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+.date {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.updateCard h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.8rem;
+  color: white;
+}
+
+.updateCard p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
