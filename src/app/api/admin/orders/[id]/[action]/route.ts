@@ -4,13 +4,14 @@ import { NextResponse } from 'next/server';
 
 type Action = 'cancel' | 'complete';
 
-export async function POST(request: Request, { params }: { params: { id: string; action: Action } }) {
-  const { id, action } = params;
+export async function POST(request: Request, { params }: { params: Promise<{ id: string; action: string }> }) {
+  const { id, action } = await params;
+  const typedAction = action as Action;
   const statusMap: Record<Action, 'Canceled' | 'Completed'> = {
     cancel: 'Canceled',
     complete: 'Completed',
   };
-  const newStatus = statusMap[action];
+  const newStatus = statusMap[typedAction];
 
   try {
     const updated = updateOrderStatus(id, newStatus);
