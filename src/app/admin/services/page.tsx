@@ -27,6 +27,7 @@ const AdminServices = () => {
   const [convRate, setConvRate] = useState(83);
   const [selectedAdminCategory, setSelectedAdminCategory] = useState<string>('All');
   const [categories, setCategories] = useState<string[]>([]);
+  const [globalDiscount, setGlobalDiscount] = useState<string>('40');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -180,7 +181,8 @@ const AdminServices = () => {
       if (data.success) {
         const rawRate = parseFloat(data.service.rate);
         const finalRate = formData.isProviderInr ? rawRate : (rawRate * rateToUse);
-        const autoSellingPrice = (finalRate * 0.6).toFixed(2); // 40% discount pre-applied
+        const pct = parseFloat(globalDiscount) || 0;
+        const autoSellingPrice = (finalRate * (1 - pct / 100)).toFixed(2);
         
         setFormData({
           ...formData,
@@ -191,7 +193,7 @@ const AdminServices = () => {
           sellingPrice: autoSellingPrice,
           description: "Min: " + data.service.min + " | Max: " + data.service.max
         });
-        showToast('success', 'Service details auto-filled! Selling price pre-set with 40% discount.');
+        showToast('success', `Service details auto-filled! Selling price pre-set with ${pct}% discount.`);
       } else {
         showToast('error', data.error || 'Failed to fetch details');
       }
@@ -208,13 +210,22 @@ const AdminServices = () => {
       showToast('error', 'No services found. Import services first.');
       return;
     }
-    const updated = services.map(s => ({
-      ...s,
-      rate: (parseFloat(s.rate) * 0.6).toFixed(2)
-    }));
+    const pct = parseFloat(globalDiscount);
+    if (isNaN(pct)) {
+      showToast('error', 'Please enter a valid percentage.');
+      return;
+    }
+    const updated = services.map(s => {
+      const base = parseFloat(s.providerRate || s.rate);
+      const factor = 1 - (pct / 100);
+      return {
+        ...s,
+        rate: (base * factor).toFixed(2)
+      };
+    });
     setServices(updated);
     localStorage.setItem('panel_services', JSON.stringify(updated));
-    showToast('success', `✅ 40% discount applied to ${updated.length} services!`);
+    showToast('success', `✅ ${pct}% discount applied to ${updated.length} services!`);
   };
 
   const handleEdit = (service: Service) => {
@@ -309,9 +320,11 @@ const AdminServices = () => {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
+          const pct = parseFloat(globalDiscount) || 0;
+          const factor = 1 - (pct / 100);
           const mapped = data.map((s: { id: number; name: string; category: string; rate: number; description?: string }) => {
             const basePrice = parseFloat(String(s.rate));
-            const sellingPrice = (basePrice * 0.6).toFixed(2); // 40% discount applied!
+            const sellingPrice = (basePrice * factor).toFixed(2);
             const providerCost = (basePrice * 0.8).toFixed(2);
             return {
               id: s.id,
@@ -330,7 +343,7 @@ const AdminServices = () => {
           setServices(mapped);
           localStorage.setItem('panel_services', JSON.stringify(mapped));
           localStorage.setItem('peaksender_price_discount_40_applied', 'true');
-          showToast('success', `Successfully imported ${mapped.length} services with 40% discount applied!`);
+          showToast('success', `Successfully imported ${mapped.length} services with ${pct}% discount applied!`);
         } else {
           showToast('error', 'Failed to load services data');
         }
@@ -382,14 +395,50 @@ const AdminServices = () => {
           <button className={styles.actionBtn} onClick={handleImportAllServices} disabled={isFetching}>
             {isFetching ? 'Importing...' : '📥 Import All Services'}
           </button>
-          <button
-            className={styles.actionBtn}
-            style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}
-            onClick={handleApplyGlobalDiscount}
-            disabled={services.length === 0}
-          >
-            📉 Apply 40% Discount to All
-          </button>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            background: 'var(--card-bg)', 
+            padding: '0.25rem 0.75rem', 
+            borderRadius: '10px', 
+            border: '1px solid var(--card-border)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+          }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Discount:</span>
+            <input 
+              type="number" 
+              value={globalDiscount} 
+              onChange={(e) => setGlobalDiscount(e.target.value)}
+              placeholder="40"
+              style={{ 
+                width: '60px', 
+                padding: '0.4rem', 
+                borderRadius: '6px', 
+                border: '1px solid var(--card-border)', 
+                background: 'var(--background)', 
+                color: 'var(--foreground)', 
+                fontWeight: 'bold', 
+                textAlign: 'center',
+                outline: 'none'
+              }}
+            />
+            <span style={{ fontWeight: 'bold', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>%</span>
+            <button
+              className={styles.actionBtn}
+              style={{ 
+                background: 'rgba(16,185,129,0.15)', 
+                color: '#10b981', 
+                border: '1px solid rgba(16,185,129,0.3)',
+                padding: '0.4rem 0.8rem',
+                margin: 0
+              }}
+              onClick={handleApplyGlobalDiscount}
+              disabled={services.length === 0}
+            >
+              📉 Apply to All
+            </button>
+          </div>
           <button 
             className={styles.actionBtn} 
             style={{ background: '#ef4444' }}
