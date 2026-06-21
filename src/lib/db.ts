@@ -517,3 +517,29 @@ async function initMySQLDB(dbPool: mysql.Pool) {
     console.error('MySQL database initialization failed:', error);
   }
 }
+
+let memoryStore: Record<string, string> = {};
+
+export async function getKV(key: string): Promise<string | null> {
+  if (useRedis) {
+    try {
+      return await redisCall(["GET", key]);
+    } catch (e) {
+      console.error('getKV Redis error:', e);
+      return memoryStore[key] || null;
+    }
+  }
+  return memoryStore[key] || null;
+}
+
+export async function setKV(key: string, value: string): Promise<void> {
+  if (useRedis) {
+    try {
+      await redisCall(["SET", key, value]);
+      return;
+    } catch (e) {
+      console.error('setKV Redis error:', e);
+    }
+  }
+  memoryStore[key] = value;
+}

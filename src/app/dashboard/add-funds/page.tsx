@@ -33,24 +33,46 @@ const AddFundsPage = () => {
       .catch(err => console.error('QR generation error', err));
   }, [upiId, amount]);
   useEffect(() => {
-    // Load Admin Settings & Min Deposit
-    const savedSettings = localStorage.getItem('admin_settings');
-    if (savedSettings) {
+    // Load Admin Settings & Min Deposit from API or fallback
+    const loadSettings = async () => {
       try {
-        const parsed = JSON.parse(savedSettings);
-        if (parsed.minDeposit) {
-          const min = parseFloat(parsed.minDeposit);
-          setMinDeposit(min);
-          setAmount(min);
-        }
-        if (parsed.phonepeUpiId) {
-          const upi = parsed.phonepeUpiId;
-          setUpiId(upi);
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          if (data.minDeposit) {
+            const min = parseFloat(data.minDeposit);
+            setMinDeposit(min);
+            setAmount(min);
+          }
+          if (data.phonepeUpiId) {
+            setUpiId(data.phonepeUpiId);
+          }
+          localStorage.setItem('admin_settings', JSON.stringify(data));
+          return;
         }
       } catch (e) {
-        console.error(e);
+        console.error('Failed to load settings from API, falling back', e);
       }
-    }
+
+      // Fallback
+      const savedSettings = localStorage.getItem('admin_settings');
+      if (savedSettings) {
+        try {
+          const parsed = JSON.parse(savedSettings);
+          if (parsed.minDeposit) {
+            const min = parseFloat(parsed.minDeposit);
+            setMinDeposit(min);
+            setAmount(min);
+          }
+          if (parsed.phonepeUpiId) {
+            setUpiId(parsed.phonepeUpiId);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    loadSettings();
 
     const savedBalance = localStorage.getItem('peaksender_balance');
     if (savedBalance) {
@@ -132,8 +154,8 @@ const AddFundsPage = () => {
     e.preventDefault();
     setMessage(null);
 
-    if (amount !== minDeposit) {
-      const errMsg = `Payment amount must be exactly ₹${minDeposit.toFixed(2)}.`;
+    if (amount < minDeposit) {
+      const errMsg = `Payment amount must be at least ₹${minDeposit.toFixed(2)}.`;
       setMessage({ type: 'error', text: errMsg });
       showToast('error', errMsg);
       return;
@@ -206,8 +228,21 @@ const AddFundsPage = () => {
 
           <form className={styles.orderForm} onSubmit={handlePayment}>
             {/* Display Trio QR Image */}
-            <div className={styles.qrContainer} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'white', padding: '0.8rem', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', width: '300px', height: '300px', border: '2px solid white', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div className={styles.qrContainer} style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ 
+                background: 'white', 
+                padding: '0.8rem', 
+                borderRadius: '12px', 
+                boxShadow: '0 8px 30px rgba(0,0,0,0.3)', 
+                maxWidth: '280px', 
+                width: '100%', 
+                aspectRatio: '1/1', 
+                height: 'auto', 
+                border: '2px solid white', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center' 
+              }}>
                 <img 
                   src={qrDataUrl || '/payment-qr.png'} 
                   alt="Trio UPI QR Code" 
@@ -230,7 +265,7 @@ const AddFundsPage = () => {
                 value={amount || ''}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                 required
-                min={minDeposit} max={minDeposit}
+                min={minDeposit}
               />
             </div>
 
@@ -283,7 +318,7 @@ const AddFundsPage = () => {
             <h3>Recent Deposits</h3>
             <div style={{ marginTop: '1rem', fontSize: '0.85rem' }}>
               {recentDeposits.map((dep, index) => (
-                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)' }}>
                   <div>
                     <p style={{ color: 'var(--foreground)', fontWeight: '500' }}>₹{dep.amount.toFixed(2)}</p>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>UTR: {dep.transactionId}</span>

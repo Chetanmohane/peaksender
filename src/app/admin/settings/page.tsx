@@ -31,18 +31,32 @@ const AdminSettings = () => {
     supportEmail: 'support@thepeaksmm.shop',
   });
 
-  // Load settings from localStorage on mount asynchronously
+  // Load settings from API & fallback to localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('admin_settings');
-    if (saved) {
-      setTimeout(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data && Object.keys(data).length > 0) {
+          setSettings(data);
+          localStorage.setItem('admin_settings', JSON.stringify(data));
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to fetch settings from API, falling back', e);
+      }
+
+      // Fallback
+      const saved = localStorage.getItem('admin_settings');
+      if (saved) {
         try {
           setSettings(JSON.parse(saved));
         } catch (e) {
           console.error(e);
         }
-      }, 0);
-    }
+      }
+    };
+    loadSettings();
   }, []);
 
   // Tab change instructions
@@ -58,18 +72,33 @@ const AdminSettings = () => {
     setSettings(prev => ({ ...prev, [name]: val }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      // Save locally
       localStorage.setItem('admin_settings', JSON.stringify(settings));
-      setIsSaving(false);
       
+      // Save to database
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to save to database');
+      }
+
       const successMsg = 'Settings saved successfully!';
       setSaveStatus(successMsg);
       showToast('success', successMsg);
-      
       setTimeout(() => setSaveStatus(''), 3000);
-    }, 800);
+    } catch (e) {
+      console.error(e);
+      showToast('error', 'Saved locally, but failed to sync to database.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const tabs = [
