@@ -3,8 +3,8 @@ import "./globals.css";
 import { ToastContainer } from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "PeakSender | Premium SMM Panel for Instant Growth",
-  description: "Boost your social media presence with PeakSender. High quality followers, likes, and views for Instagram, TikTok, YouTube and more.",
+  title: "ThePeakSMM | Premium SMM Panel for Instant Growth",
+  description: "Boost your social media presence with ThePeakSMM. High quality followers, likes, and views for Instagram, TikTok, YouTube and more.",
 };
 
 export default function RootLayout({

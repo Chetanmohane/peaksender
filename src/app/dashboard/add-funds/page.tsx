@@ -23,15 +23,20 @@ const AddFundsPage = () => {
   const [minDeposit, setMinDeposit] = useState<number>(10);
 
   const [upiId, setUpiId] = useState<string>('');
+  const [merchantName, setMerchantName] = useState<string>('Chetan Mohane');
+  const [qrTab, setQrTab] = useState<'famx' | 'bank'>('famx');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
   // Generate QR code when upiId or amount changes
   useEffect(() => {
     if (!upiId) return;
-    const uri = `upi://pay?pa=${upiId}&am=${amount}`;
+    const cleanMerchantName = encodeURIComponent(merchantName || 'Chetan Mohane');
+    const uri = `upi://pay?pa=${upiId}&pn=${cleanMerchantName}&am=${amount}&cu=INR&mode=02&purpose=00`;
     QRCode.toDataURL(uri)
       .then(url => setQrDataUrl(url))
       .catch(err => console.error('QR generation error', err));
-  }, [upiId, amount]);
+  }, [upiId, merchantName, amount]);
+
   useEffect(() => {
     // Load Admin Settings & Min Deposit from API or fallback
     const loadSettings = async () => {
@@ -46,6 +51,9 @@ const AddFundsPage = () => {
           }
           if (data.phonepeUpiId) {
             setUpiId(data.phonepeUpiId);
+          }
+          if (data.phonepeMerchantName) {
+            setMerchantName(data.phonepeMerchantName);
           }
           localStorage.setItem('admin_settings', JSON.stringify(data));
           return;
@@ -66,6 +74,9 @@ const AddFundsPage = () => {
           }
           if (parsed.phonepeUpiId) {
             setUpiId(parsed.phonepeUpiId);
+          }
+          if (parsed.phonepeMerchantName) {
+            setMerchantName(parsed.phonepeMerchantName);
           }
         } catch (e) {
           console.error(e);
@@ -238,6 +249,13 @@ const AddFundsPage = () => {
       });
   };
 
+  const copyToClipboard = (text: string) => {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      showToast('success', 'UPI ID copied to clipboard!');
+    }
+  };
+
   return (
     <div className={styles.pageContainer}>
       <div style={{ marginBottom: '2rem' }}>
@@ -249,7 +267,7 @@ const AddFundsPage = () => {
         <div className={`${styles.orderCard} glass animate-fade`}>
           <h2>Secure UPI QR Deposit</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Scan the Trio QR Code using any UPI App (PhonePe, GooglePay, Paytm, BHIM) and pay. Submit the UTR transaction receipt below for instant credit verification.
+            Scan the FamX QR Code using any UPI App (PhonePe, GooglePay, Paytm, BHIM) and pay. Submit the UTR transaction receipt below for instant credit verification.
           </p>
           
           {message && (
@@ -259,33 +277,83 @@ const AddFundsPage = () => {
           )}
 
           <form className={styles.orderForm} onSubmit={handlePayment}>
-            {/* Display Trio QR Image */}
-            <div className={styles.qrContainer} style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ 
-                background: 'white', 
-                padding: '0.8rem', 
-                borderRadius: '12px', 
-                boxShadow: '0 8px 30px rgba(0,0,0,0.3)', 
-                maxWidth: '280px', 
-                width: '100%', 
-                aspectRatio: '1/1', 
-                height: 'auto', 
-                border: '2px solid white', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center' 
-              }}>
-                <img 
-                  src={qrDataUrl || '/payment-qr.png'} 
-                  alt="Trio UPI QR Code" 
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }}
-                />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <strong style={{ color: 'var(--foreground)', display: 'block', fontSize: '1rem' }}>Scan to Pay via UPI</strong>
-                <span style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold' }}>BHIM / GPay / PhonePe / Paytm</span>
-              </div>
+            {/* Segment Tab Selector */}
+            <div className={styles.segmentSelector}>
+              <button 
+                type="button" 
+                className={`${styles.segmentBtn} ${qrTab === 'famx' ? styles.segmentBtnActive : ''}`}
+                onClick={() => setQrTab('famx')}
+              >
+                ✕ FamX
+              </button>
+              <button 
+                type="button" 
+                className={`${styles.segmentBtn} ${qrTab === 'bank' ? styles.segmentBtnActive : ''}`}
+                onClick={() => setQrTab('bank')}
+              >
+                🏦 Bank
+              </button>
             </div>
+
+            {/* Display Premium Digital Card */}
+            {qrTab === 'famx' ? (
+              <div className={styles.digitalCardContainer} style={{ marginBottom: '2rem' }}>
+                {/* Floating money bills & gold coins decorations */}
+                <div className={styles.moneyFloatBill} style={{ top: '8%', left: '8%', transform: 'rotate(15deg)', fontSize: '1.5rem' }}>💸</div>
+                <div className={styles.coinFloat} style={{ top: '15%', right: '10%', fontSize: '1.25rem' }}>🪙</div>
+                <div className={styles.coinFloat} style={{ bottom: '25%', left: '12%', animationDelay: '1s', fontSize: '1.25rem' }}>🪙</div>
+                <div className={styles.moneyFloatBill} style={{ bottom: '12%', right: '8%', animationDelay: '2s', fontSize: '1.5rem' }}>💵</div>
+
+                {/* QR Code Wrapper with overlay bird logo */}
+                <div className={styles.digitalQrWrapper}>
+                  {qrDataUrl && (
+                    <div className={styles.qrLogoOverlay}>
+                      {/* Stylized flying bird logo in SVG */}
+                      <svg viewBox="0 0 100 100" style={{ width: '22px', height: '22px', fill: '#eab308' }}>
+                        <path d="M78,18 C72,25.8 45,52 38,58 C36,60 35,59 35,56 C37,50 42,34 43,29 C43,28 42,27 41,28 C36,31 20,42 15,45 C13,47 13,49 15,50 C22,52 33,56 33,56 C33,56 37,68 40,74 C41,77 42,77 44,75 C47,70 59,53 62,49 C63,47 62,46 60,46 C56,47 39,52 33,54 C32,54 32,53 32,53 C39,46 65,19 78,18 Z" />
+                      </svg>
+                    </div>
+                  )}
+                  <img 
+                    src={qrDataUrl || '/payment-qr.png'} 
+                    alt="FamX UPI QR Code" 
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+                  />
+                </div>
+
+                {/* UPI ID Pill Capsule */}
+                <div className={styles.digitalUpiPill} onClick={() => copyToClipboard(upiId || '2729mohane2729@fam')}>
+                  <span>{upiId || '2729mohane2729@fam'}</span>
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" style={{ opacity: 0.7 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                </div>
+                
+                <div style={{ textAlign: 'center', marginTop: '0.4rem', color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem' }}>
+                  Merchant: <strong style={{ color: '#ffffff' }}>{merchantName || 'Chetan Mohane'}</strong>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.digitalCardContainer} style={{ marginBottom: '2rem', minHeight: '340px', justifyContent: 'center' }}>
+                <div style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)', textAlign: 'center', padding: '1rem' }}>
+                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🏦</span>
+                  <h4 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Direct Bank Transfer</h4>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+                    For manual IMPS / NEFT / RTGS transfers, please contact support to receive official bank details.
+                  </p>
+                  <a 
+                    href="https://wa.me/911234567890" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={styles.placeOrderBtn}
+                    style={{ display: 'inline-block', fontSize: '0.85rem', background: '#25D366', textDecoration: 'none', padding: '10px 20px', borderRadius: '12px' }}
+                  >
+                    Contact Support
+                  </a>
+                </div>
+              </div>
+            )}
+
             <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Minimum payment amount is ₹{minDeposit}.</p>
 
             <div className={styles.field} style={{ marginBottom: '1.5rem' }}>

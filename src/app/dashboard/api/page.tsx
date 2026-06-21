@@ -9,7 +9,7 @@ const DashboardAPIDocsPage = () => {
       <div className={`${styles.orderCard} glass animate-fade`} style={{ maxWidth: '900px', margin: '0 auto' }}>
         <h2 style={{ marginBottom: '0.5rem' }}>API Documentation</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          Integrate PeakSender services into your own platform with our powerful API.
+          Integrate ThePeakSMM services into your own platform with our powerful API.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

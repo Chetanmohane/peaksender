@@ -70,7 +70,7 @@ const LoginPage = () => {
       <div className={`${styles.authCard} glass`}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
-            <span className="text-gradient">Peak</span>Sender
+            <span className="text-gradient">ThePeak</span>SMM
           </Link>
           <h1>Welcome Back</h1>
           <p>Login to your account to continue</p>

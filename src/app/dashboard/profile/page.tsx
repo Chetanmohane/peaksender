@@ -211,7 +211,7 @@ const ProfileSettingsPage = () => {
             <hr className={styles.divider} style={{ margin: '1.5rem 0', opacity: 0.05 }} />
             <h4 style={{ color: 'var(--foreground)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>VIP Perks Details</h4>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              As a PeakSender VIP Elite member, you receive premium discounts on bulk orders, automatic API-keys access, and instantaneous support response.
+              As a ThePeakSMM VIP Elite member, you receive premium discounts on bulk orders, automatic API-keys access, and instantaneous support response.
             </p>
           </div>
         </div>

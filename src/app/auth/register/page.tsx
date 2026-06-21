@@ -79,7 +79,7 @@ const RegisterPage = () => {
       <div className={`${styles.authCard} glass`}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
-            <span className="text-gradient">Peak</span>Sender
+            <span className="text-gradient">ThePeak</span>SMM
           </Link>
           <h1>Create Account</h1>
           <p>Join the best SMM platform today</p>

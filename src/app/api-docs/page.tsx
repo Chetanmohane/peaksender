@@ -10,7 +10,7 @@ const APIDocsPage = () => {
       <div className={styles.hero}>
         <div className={styles.container}>
           <h1 className="text-gradient">API Documentation</h1>
-          <p>Integrate PeakSender services into your own platform with our powerful API.</p>
+          <p>Integrate ThePeakSMM services into your own platform with our powerful API.</p>
         </div>
       </div>
 

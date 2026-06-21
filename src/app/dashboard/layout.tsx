@@ -138,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <>
       <div className={styles.sidebarHeader}>
         <Link href="/" className={styles.logo} onClick={onLinkClick}>
-          <span className="text-gradient">Peak</span>Sender
+          <span className="text-gradient">ThePeak</span>SMM
         </Link>
         {isAdmin && (
           <div className={styles.adminBadge}>
