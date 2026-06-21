@@ -374,6 +374,60 @@ async function executeRedisQuery(sql: string, params: any[] = []): Promise<[any,
     return [[{ count: len }], null];
   }
 
+  // 22. INSERT INTO deposits (id, customer, method, amount, transactionId, status) VALUES (?, ?, ?, ?, ?, ?)
+  if (normalizedSql.match(/INSERT\s+INTO\s+deposits\s*\(\s*id,\s*customer,\s*method,\s*amount,\s*transactionId,\s*status\s*\)\s*VALUES\s*\(\s*\?,\s*\?,\s*\?,\s*\?,\s*\?,\s*\?\s*\)/i)) {
+    const [id, customer, method, amount, transactionId, status] = params;
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const newDep = {
+      id,
+      customer,
+      method,
+      amount: parseFloat(amount),
+      transactionId,
+      date: now,
+      status: status || 'Pending'
+    };
+    await redisCall(["HSET", "peaksender:deposits", id, JSON.stringify(newDep)]);
+    return [{ affectedRows: 1 }, null];
+  }
+
+  // 23. SELECT * FROM deposits ORDER BY date DESC
+  if (normalizedSql.match(/SELECT\s+\*\s+FROM\s+deposits\s+ORDER\s+BY\s+date\s+DESC/i) || normalizedSql.match(/SELECT\s+\*\s+FROM\s+deposits/i)) {
+    const depJsons = await redisCall(["HVALS", "peaksender:deposits"]) || [];
+    const deps = depJsons.map((j: string) => JSON.parse(j));
+    deps.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return [deps, null];
+  }
+
+  // 24. SELECT * FROM deposits WHERE customer = ? ORDER BY date DESC
+  if (normalizedSql.match(/SELECT\s+\*\s+FROM\s+deposits\s+WHERE\s+customer\s*=\s*\?\s+ORDER\s+BY\s+date\s+DESC/i) || normalizedSql.match(/SELECT\s+\*\s+FROM\s+deposits\s+WHERE\s+customer\s*=\s*\?/i)) {
+    const [customer] = params;
+    const depJsons = await redisCall(["HVALS", "peaksender:deposits"]) || [];
+    const deps = depJsons.map((j: string) => JSON.parse(j)).filter((d: any) => d.customer === customer);
+    deps.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return [deps, null];
+  }
+
+  // 25. SELECT * FROM deposits WHERE id = ?
+  if (normalizedSql.match(/SELECT\s+\*\s+FROM\s+deposits\s+WHERE\s+id\s*=\s*\?/i)) {
+    const [id] = params;
+    const depJson = await redisCall(["HGET", "peaksender:deposits", id]);
+    return [depJson ? [JSON.parse(depJson)] : [], null];
+  }
+
+  // 26. UPDATE deposits SET status = ? WHERE id = ?
+  if (normalizedSql.match(/UPDATE\s+deposits\s+SET\s+status\s*=\s*\?\s+WHERE\s+id\s*=\s*\?/i)) {
+    const [status, id] = params;
+    const depJson = await redisCall(["HGET", "peaksender:deposits", id]);
+    if (depJson) {
+      const dep = JSON.parse(depJson);
+      dep.status = status;
+      await redisCall(["HSET", "peaksender:deposits", id, JSON.stringify(dep)]);
+      return [{ affectedRows: 1 }, null];
+    }
+    return [{ affectedRows: 0 }, null];
+  }
+
   console.warn('SQL query not recognized by Redis Mock client:', sql, params);
   return [[], null];
 }
@@ -474,6 +528,18 @@ async function initMySQLDB(dbPool: mysql.Pool) {
         charge DECIMAL(15, 2) NOT NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'Pending',
         createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB;
+    `);
+
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS deposits (
+        id VARCHAR(50) PRIMARY KEY,
+        customer VARCHAR(255) NOT NULL,
+        method VARCHAR(255) NOT NULL,
+        amount DECIMAL(15, 2) NOT NULL,
+        transactionId VARCHAR(255) NOT NULL,
+        date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(50) NOT NULL DEFAULT 'Pending'
       ) ENGINE=InnoDB;
     `);
 

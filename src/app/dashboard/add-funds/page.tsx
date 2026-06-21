@@ -103,39 +103,43 @@ const AddFundsPage = () => {
       }
     }, 0);
 
-    // Load Recent Deposits
-    const savedDeposits = localStorage.getItem('peaksender_deposits');
-    if (savedDeposits) {
-      setTimeout(() => {
+    // Load Recent Deposits from API or fallback
+    const loadDeposits = async () => {
+      const profileStr = localStorage.getItem('peaksender_profile');
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) {
+            const res = await fetch(`/api/deposits?username=${encodeURIComponent(profile.name)}`);
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              setRecentDeposits(data);
+              localStorage.setItem('peaksender_deposits', JSON.stringify(data));
+              return;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to fetch deposits from API, falling back', e);
+        }
+      }
+
+      // Fallback
+      const savedDeposits = localStorage.getItem('peaksender_deposits');
+      if (savedDeposits) {
         try {
           setRecentDeposits(JSON.parse(savedDeposits));
         } catch (e) {
           console.error(e);
         }
-      }, 0);
-    } else {
-      const defaultDeposits: Deposit[] = [
-        { id: 'DEP-1023', method: 'Trio UPI QR', amount: 500.00, transactionId: '412398471928', date: '2026-05-18 14:32', status: 'Completed' },
-        { id: 'DEP-1024', method: 'Trio UPI QR', amount: 250.00, transactionId: '412309124817', date: '2026-05-19 19:12', status: 'Completed' }
-      ];
-      localStorage.setItem('peaksender_deposits', JSON.stringify(defaultDeposits));
-      setTimeout(() => {
-        setRecentDeposits(defaultDeposits);
-      }, 0);
-    }
+      }
+    };
+
+    loadDeposits();
 
     const handleBalanceUpdate = () => {
       const currentBalance = localStorage.getItem('peaksender_balance');
       if (currentBalance) setBalance(parseFloat(currentBalance));
-      
-      const currentDeposits = localStorage.getItem('peaksender_deposits');
-      if (currentDeposits) {
-        try {
-          setRecentDeposits(JSON.parse(currentDeposits));
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      loadDeposits();
     };
 
     window.addEventListener('peaksender_balance_update', handleBalanceUpdate);
@@ -180,30 +184,58 @@ const AddFundsPage = () => {
     const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
     const depId = 'DEP-' + Math.floor(1000 + Math.random() * 9000);
 
-    const newDeposit: Deposit = {
+    const profileStr = localStorage.getItem('peaksender_profile');
+    let customer = 'guest';
+    if (profileStr) {
+      try {
+        const p = JSON.parse(profileStr);
+        if (p.name) customer = p.name;
+      } catch (e) {}
+    }
+
+    const newDeposit = {
       id: depId,
+      customer,
       method: 'Trio UPI QR',
       amount: parseFloat(amount.toFixed(2)),
       transactionId: cleanUtr,
-      date: dateStr,
       status: 'Pending'
     };
 
-    const updatedDeposits = [newDeposit, ...recentDeposits];
-    localStorage.setItem('peaksender_deposits', JSON.stringify(updatedDeposits));
-    setRecentDeposits(updatedDeposits);
-
-    setAmount(0);
-    setTransactionId('');
-    
-    const successMsg = `Receipt submitted! UTR #${cleanUtr} has been sent to Admin for approval. Balance will credit within minutes once verified.`;
-    setMessage({ 
-      type: 'success', 
-      text: successMsg 
-    });
-    showToast('success', successMsg);
-
-    window.dispatchEvent(new Event('peaksender_deposits_update'));
+    fetch('/api/deposits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newDeposit)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const updatedDeposits = [{ ...newDeposit, date: dateStr } as Deposit, ...recentDeposits];
+          localStorage.setItem('peaksender_deposits', JSON.stringify(updatedDeposits));
+          setRecentDeposits(updatedDeposits);
+          
+          setAmount(0);
+          setTransactionId('');
+          
+          const successMsg = `Receipt submitted! UTR #${cleanUtr} has been sent to Admin for approval. Balance will credit within minutes once verified.`;
+          setMessage({ type: 'success', text: successMsg });
+          showToast('success', successMsg);
+          window.dispatchEvent(new Event('peaksender_deposits_update'));
+        } else {
+          showToast('error', data.error || 'Failed to submit payment receipt');
+          setMessage({ type: 'error', text: data.error || 'Failed to submit payment receipt' });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('error', 'Network error. Receipt submitted locally.');
+        const updatedDeposits = [{ ...newDeposit, date: dateStr } as Deposit, ...recentDeposits];
+        localStorage.setItem('peaksender_deposits', JSON.stringify(updatedDeposits));
+        setRecentDeposits(updatedDeposits);
+        setAmount(0);
+        setTransactionId('');
+        window.dispatchEvent(new Event('peaksender_deposits_update'));
+      });
   };
 
   return (

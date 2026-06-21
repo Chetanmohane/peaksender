@@ -17,108 +17,71 @@ const AdminPayments = () => {
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(8450.00);
 
-  // Load deposits from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('peaksender_deposits');
-    if (saved) {
-      setTimeout(() => {
-        try {
-          const parsed = JSON.parse(saved);
-          setDeposits(parsed);
-          
-          // Calculate total completed revenue
-          const total = parsed
-            .filter((d: Deposit) => d.status === 'Completed')
-            .reduce((sum: number, d: Deposit) => sum + d.amount, 0);
-          setTotalRevenue(total || 8450.00);
-        } catch (e) {
-          console.error(e);
-        }
-      }, 0);
-    }
-  }, []);
-
-  const handleApprove = (depId: string) => {
-    const saved = localStorage.getItem('peaksender_deposits');
-    if (!saved) return;
-
+  const loadDeposits = async () => {
     try {
-      const allDeps: Deposit[] = JSON.parse(saved);
-      const targetDep = allDeps.find(d => d.id === depId);
-
-      if (!targetDep || targetDep.status !== 'Pending') return;
-
-      // Update Status
-      targetDep.status = 'Completed';
-
-      // Credit User Balance
-      const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
-      const updatedBalance = currentBalance + targetDep.amount;
-      localStorage.setItem('peaksender_balance', updatedBalance.toString());
-
-      // Save back to LocalStorage
-      localStorage.setItem('peaksender_deposits', JSON.stringify(allDeps));
-      setDeposits(allDeps);
-
-      // Recalculate total completed revenue
-      const total = allDeps
-         .filter(d => d.status === 'Completed')
-         .reduce((sum, d) => sum + d.amount, 0);
-      setTotalRevenue(total || 8450.00);
-
-      showToast('success', `Deposit request ${depId} approved successfully! ₹${targetDep.amount.toFixed(2)} credited to balance.`);
-      
-      // Dispatch sync events
-      window.dispatchEvent(new Event('peaksender_balance_update'));
-      window.dispatchEvent(new Event('peaksender_deposits_update'));
+      const res = await fetch('/api/deposits');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setDeposits(data);
+        
+        // Calculate total completed revenue
+        const total = data
+          .filter((d: Deposit) => d.status === 'Completed')
+          .reduce((sum: number, d: Deposit) => sum + d.amount, 0);
+        setTotalRevenue(total || 0);
+      }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to load deposits:', e);
     }
   };
 
-  const handleReject = (depId: string) => {
-    const saved = localStorage.getItem('peaksender_deposits');
-    if (!saved) return;
+  useEffect(() => {
+    loadDeposits();
+  }, []);
 
+  const handleApprove = async (depId: string) => {
     try {
-      const allDeps: Deposit[] = JSON.parse(saved);
-      const targetDep = allDeps.find(d => d.id === depId);
-
-      if (!targetDep || targetDep.status !== 'Pending') return;
-
-      // Update Status
-      targetDep.status = 'Rejected';
-
-      // Save back to LocalStorage
-      localStorage.setItem('peaksender_deposits', JSON.stringify(allDeps));
-      setDeposits(allDeps);
-
-      showToast('info', `Deposit request ${depId} rejected.`);
-      
-      // Dispatch sync events
-      window.dispatchEvent(new Event('peaksender_deposits_update'));
+      const res = await fetch('/api/deposits', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: depId, action: 'Approve' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', `Deposit request ${depId} approved successfully! User balance credited.`);
+        loadDeposits();
+        window.dispatchEvent(new Event('peaksender_balance_update'));
+      } else {
+        showToast('error', data.error || 'Failed to approve deposit');
+      }
     } catch (e) {
       console.error(e);
+      showToast('error', 'Network error while approving deposit');
+    }
+  };
+
+  const handleReject = async (depId: string) => {
+    try {
+      const res = await fetch('/api/deposits', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: depId, action: 'Reject' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('info', `Deposit request ${depId} rejected.`);
+        loadDeposits();
+      } else {
+        showToast('error', data.error || 'Failed to reject deposit');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('error', 'Network error while rejecting deposit');
     }
   };
 
   const handleAddManualCredit = () => {
-    const amountStr = prompt('Enter the amount (₹) to credit manually to the user:');
-    if (amountStr === null) return;
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      showToast('error', 'Please enter a valid positive number.');
-      return;
-    }
-
-    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
-    const updatedBalance = currentBalance + amount;
-    localStorage.setItem('peaksender_balance', updatedBalance.toString());
-
-    showToast('success', `Successfully credited ₹${amount.toFixed(2)} to user balance manually.`);
-
-    // Dispatch balance update event
-    window.dispatchEvent(new Event('peaksender_balance_update'));
+    showToast('info', 'Please navigate to User Management (Users tab) to edit any user balance directly.');
   };
 
   const pendingCount = deposits.filter(d => d.status === 'Pending').length;
@@ -159,6 +122,7 @@ const AdminPayments = () => {
           <thead>
             <tr>
               <th>ID</th>
+              <th>Customer</th>
               <th>Method</th>
               <th>Transaction ID / UTR</th>
               <th>Amount (₹)</th>
@@ -171,6 +135,7 @@ const AdminPayments = () => {
             {deposits.map((dep) => (
               <tr key={dep.id}>
                 <td className={styles.idCol}>{dep.id}</td>
+                <td style={{ fontWeight: '600' }}>{(dep as any).customer || 'guest'}</td>
                 <td>{dep.method}</td>
                 <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{dep.transactionId}</td>
                 <td style={{ color: '#10b981', fontWeight: 'bold' }}>₹{dep.amount.toFixed(2)}</td>
@@ -208,7 +173,7 @@ const AdminPayments = () => {
             ))}
             {deposits.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
                   No deposits requested yet.
                 </td>
               </tr>
