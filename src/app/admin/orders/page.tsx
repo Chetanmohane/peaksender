@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../../dashboard/orders/orders.module.css';
 import adminStyles from '../../admin/admin.module.css';
+import { showToast } from '@/components/Toast';
 
 type Order = {
   id: string;
@@ -24,55 +25,44 @@ const STATUS_CONFIG = {
 
 const OrderAdminPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
-const updateOrderStatus = async (id: string, newStatus: 'Completed' | 'Canceled') => {
-  // Directly update local storage without calling external API (which was failing)
-  const stored = localStorage.getItem('peaksender_orders');
-  if (stored) {
-    const ordersArr = JSON.parse(stored);
-    const idx = ordersArr.findIndex((o: any) => o.id === id);
-    if (idx !== -1) {
-      ordersArr[idx].status = newStatus;
-      localStorage.setItem('peaksender_orders', JSON.stringify(ordersArr));
-      // Emit storage event manually for same‑tab listeners
-      window.dispatchEvent(new StorageEvent('storage', { key: 'peaksender_orders' }));
-      setOrders(ordersArr);
-    }
-  }
-};
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'In Progress' | 'Completed' | 'Canceled'>('All');
-  const DEFAULT_ORDERS: Order[] = [
-    {
-      id: 'ORD-001',
-      serviceId: 12345,
-      serviceName: 'Sample Service',
-      link: 'https://example.com',
-      quantity: 100,
-      charge: 10.0,
-      status: 'Completed',
-      createdAt: '2026-05-01 12:00',
-    },
-  ];
-  useEffect(() => {
-    const loadOrders = () => {
-      const saved = localStorage.getItem('peaksender_orders');
-      if (saved) {
-        try { setOrders(JSON.parse(saved)); } catch (e) { console.error(e); }
+
+  const loadOrders = async () => {
+    try {
+      const res = await fetch('/api/admin/orders');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setOrders(data);
       } else {
-        localStorage.setItem('peaksender_orders', JSON.stringify(DEFAULT_ORDERS));
-        setOrders(DEFAULT_ORDERS);
+        setOrders([]);
       }
-    };
-    
-    loadOrders();
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'peaksender_orders') {
+    } catch (e) {
+      console.error('Failed to fetch admin orders:', e);
+    }
+  };
+
+  const updateOrderStatus = async (id: string, newStatus: 'Completed' | 'Canceled') => {
+    const action = newStatus === 'Completed' ? 'complete' : 'cancel';
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/${action}`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', `Order status updated to ${newStatus}`);
         loadOrders();
+      } else {
+        showToast('error', data.error || 'Failed to update order status');
       }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    } catch (e) {
+      console.error('Error updating order status:', e);
+      showToast('error', 'Error updating order status');
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
   }, []);
 
   const filtered = orders.filter(o => {

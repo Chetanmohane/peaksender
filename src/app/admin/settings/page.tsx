@@ -11,7 +11,7 @@ const AdminSettings = () => {
 
   // Form States
   const [settings, setSettings] = useState({
-    panelName: 'PeakSender',
+    panelName: 'ThePeakSMM',
     currency: 'USD ($)',
     maintenance: false,
     timezone: '(GMT+05:30) Mumbai, Kolkata',
@@ -25,10 +25,10 @@ const AdminSettings = () => {
     phonepeMerchantName: 'PUSHPA',
     usdToInr: '83',
     minDeposit: '10', // Minimum payment amount in INR
-    metaTitle: 'PeakSender | Best SMM Panel',
+    metaTitle: 'ThePeakSMM | Best SMM Panel',
     metaDesc: 'Boost your social media presence instantly.',
     waNumber: '+91 1234567890',
-    supportEmail: 'support@peaksender.com',
+    supportEmail: 'support@thepeaksmm.shop',
   });
 
   // Load settings from localStorage on mount asynchronously

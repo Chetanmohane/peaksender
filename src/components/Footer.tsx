@@ -9,7 +9,7 @@ const Footer = () => {
         <div className={styles.top}>
           <div className={styles.brand}>
             <Link href="/" className={styles.logo}>
-              <span className="text-gradient">Peak</span>Sender
+              <span className="text-gradient">ThePeak</span>SMM
             </Link>
             <p className={styles.tagline}>
               The world&apos;s leading social media marketing panel. 
@@ -40,7 +40,7 @@ const Footer = () => {
           </div>
         </div>
         <div className={styles.bottom}>
-          <p>© 2026 PeakSender. All rights reserved.</p>
+          <p>© 2026 ThePeakSMM. All rights reserved.</p>
           <div className={styles.socials}>
             {/* Social Icons would go here */}
           </div>

@@ -407,7 +407,7 @@ const SubscriptionsPage = () => {
                       {sub.status}
                     </span>
                   </div>
-                  <p style={{ color: 'white', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.3rem' }}>{sub.targetLink}</p>
+                  <p style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.3rem' }}>{sub.targetLink}</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{sub.serviceName}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.5rem' }}>
                     <span>Min/Max: {sub.minQty}/{sub.maxQty}</span>

@@ -21,7 +21,7 @@ const APIDocsPage = () => {
             <div className={styles.code}>POST</div>
             
             <h3>API URL</h3>
-            <div className={styles.code}>https://peaksender.com/api/v2</div>
+            <div className={styles.code}>https://thepeaksmm.shop/api/v2</div>
             
             <h3>Parameters</h3>
             <table className={styles.table}>

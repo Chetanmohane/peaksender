@@ -29,6 +29,15 @@ const LoginPage = () => {
       const data = await res.json();
 
       if (data.success) {
+        const profile = { 
+          name: data.user.name, 
+          email: data.user.email,
+          role: data.user.role 
+        };
+        localStorage.setItem('peaksender_profile', JSON.stringify(profile));
+        localStorage.setItem('peaksender_balance', data.user.balance.toString());
+        window.dispatchEvent(new Event('peaksender_profile_update'));
+        window.dispatchEvent(new Event('peaksender_balance_update'));
         router.push('/dashboard');
       } else {
         setError(data.error || 'Invalid credentials');
@@ -47,7 +56,18 @@ const LoginPage = () => {
 
   return (
     <div className={styles.authContainer}>
-      <div className={`${styles.authCard} glass animate-fade`}>
+      <Link href="/" className={styles.backHomeBtn}>
+        ← Back to Website
+      </Link>
+
+      {/* Premium background layout elements */}
+      <div className={styles.gridOverlay} />
+      <div className={styles.bgGlow1} />
+      <div className={styles.bgGlow2} />
+      <div className={styles.floatingShape1} />
+      <div className={styles.floatingShape2} />
+
+      <div className={`${styles.authCard} glass`}>
         <div className={styles.header}>
           <Link href="/" className={styles.logo}>
             <span className="text-gradient">Peak</span>Sender
@@ -61,26 +81,41 @@ const LoginPage = () => {
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
             <label>Username or Email</label>
-            <input 
-              name="username"
-              type="text" 
-              placeholder="Enter your username" 
-              className="glass" 
-              required
-              onChange={handleChange}
-            />
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon}>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </span>
+              <input 
+                name="username"
+                type="text" 
+                placeholder="Enter your username" 
+                required
+                onChange={handleChange}
+              />
+            </div>
           </div>
+
           <div className={styles.inputGroup}>
-            <label>Password</label>
-            <input 
-              name="password"
-              type="password" 
-              placeholder="••••••••" 
-              className="glass" 
-              required
-              onChange={handleChange}
-            />
-            <Link href="/auth/forgot" className={styles.forgot}>Forgot Password?</Link>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label style={{ margin: 0 }}>Password</label>
+              <Link href="/auth/forgot" className={styles.forgot}>Forgot Password?</Link>
+            </div>
+            <div className={styles.inputWrapper}>
+              <span className={styles.inputIcon}>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </span>
+              <input 
+                name="password"
+                type="password" 
+                placeholder="••••••••" 
+                required
+                onChange={handleChange}
+              />
+            </div>
           </div>
           
           <div className={styles.remember}>

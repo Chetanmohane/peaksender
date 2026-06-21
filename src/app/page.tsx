@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import HowToCreate from '@/components/HowToCreate';
 import ServiceSlider from '@/components/ServiceSlider';
 import Features from '@/components/Features';
 import Footer from '@/components/Footer';
@@ -10,6 +11,7 @@ export default function Home() {
     <main className={styles.main}>
       <Navbar />
       <Hero />
+      <HowToCreate />
       <ServiceSlider />
       <Features />
       

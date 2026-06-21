@@ -19,45 +19,76 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [balanceModal, setBalanceModal] = useState<{ id: string, amount: string } | null>(null);
+  const [addUserModal, setAddUserModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    balance: '12500.00',
+    role: 'User'
+  });
 
-  // Load users from localStorage
-  useEffect(() => {
-    const loadUsers = () => {
-      const saved = localStorage.getItem('peaksender_admin_users');
-      if (saved) {
-        setUsers(JSON.parse(saved));
-      } else {
-        // Mock initial data
-        const initial: User[] = [
-          { id: '1', username: 'admin_peak', email: 'peaksender27@gmail.com', balance: 1000.00, status: 'Active', createdAt: '2026-05-01', role: 'Admin' },
-          { id: '2', username: 'john_doe', email: 'john@example.com', balance: 150.45, status: 'Active', createdAt: '2026-05-05', role: 'User' }
-        ];
-        setUsers(initial);
-        localStorage.setItem('peaksender_admin_users', JSON.stringify(initial));
+  const loadUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setUsers(data);
       }
-    };
-    
-    loadUsers();
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'peaksender_admin_users') {
-        loadUsers();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const saveUsers = (newUsers: User[]) => {
-    setUsers(newUsers);
-    localStorage.setItem('peaksender_admin_users', JSON.stringify(newUsers));
+    } catch (e) {
+      console.error('Failed to load users from MySQL:', e);
+    }
   };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const handleUpdateBalanceClick = (id: string, currentBalance: number) => {
     setBalanceModal({ id, amount: currentBalance.toString() });
   };
 
-  const submitBalanceUpdate = () => {
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.username || !newUser.email || !newUser.password) {
+      showToast('error', 'All fields are required');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: newUser.username,
+          email: newUser.email,
+          password: newUser.password,
+          balance: parseFloat(newUser.balance),
+          role: newUser.role
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', 'New user account created successfully');
+        setAddUserModal(false);
+        setNewUser({
+          username: '',
+          email: '',
+          password: '',
+          balance: '12500.00',
+          role: 'User'
+        });
+        loadUsers();
+      } else {
+        showToast('error', data.error || 'Failed to create user');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('error', 'Connection error. Please try again.');
+    }
+  };
+
+  const submitBalanceUpdate = async () => {
     if (!balanceModal) return;
     const { id, amount } = balanceModal;
     
@@ -67,14 +98,35 @@ const AdminUsers = () => {
       return;
     }
 
-    const updated = users.map(u => u.id === id ? { ...u, balance: parsed } : u);
-    saveUsers(updated);
-    showToast('success', `Balance updated to ₹${parsed.toFixed(2)}`);
-    
-    // If updating main user, sync to global balance
-    if (id === '1') {
-      localStorage.setItem('peaksender_balance', parsed.toString());
-      window.dispatchEvent(new Event('peaksender_balance_update'));
+    try {
+      const res = await fetch(`/api/admin/users/${id}/balance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance: parsed })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', `Balance updated to ₹${parsed.toFixed(2)}`);
+        
+        const profileStr = localStorage.getItem('peaksender_profile');
+        const targetUser = users.find(u => u.id === id);
+        if (profileStr && targetUser) {
+          try {
+            const profile = JSON.parse(profileStr);
+            if (profile.name === targetUser.username) {
+              localStorage.setItem('peaksender_balance', parsed.toString());
+              window.dispatchEvent(new Event('peaksender_balance_update'));
+            }
+          } catch (e) {}
+        }
+        
+        loadUsers();
+      } else {
+        showToast('error', data.error || 'Failed to update balance');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('error', 'Error updating balance');
     }
     
     setBalanceModal(null);
@@ -84,19 +136,60 @@ const AdminUsers = () => {
     setEditingUser({ ...user });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingUser) return;
-    const updated = users.map(u => u.id === editingUser.id ? editingUser : u);
-    saveUsers(updated);
+    try {
+      const res = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: editingUser.username,
+          email: editingUser.email,
+          role: editingUser.role,
+          status: editingUser.status
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', 'User details updated successfully');
+        loadUsers();
+      } else {
+        showToast('error', data.error || 'Failed to update user details');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('error', 'Error updating user details');
+    }
     setEditingUser(null);
-    showToast('success', 'User details updated successfully');
   };
 
-  const toggleStatus = (id: string, currentStatus: string) => {
+  const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Active' ? 'Banned' : 'Active';
-    const updated = users.map(u => u.id === id ? { ...u, status: newStatus as 'Active' | 'Banned' } : u);
-    saveUsers(updated);
-    showToast('success', `User marked as ${newStatus}`);
+    const targetUser = users.find(u => u.id === id);
+    if (!targetUser) return;
+
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: targetUser.username,
+          email: targetUser.email,
+          role: targetUser.role,
+          status: newStatus
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('success', `User marked as ${newStatus}`);
+        loadUsers();
+      } else {
+        showToast('error', data.error || 'Failed to update status');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('error', 'Error updating status');
+    }
   };
 
   const filteredUsers = users.filter(u => 
@@ -117,7 +210,13 @@ const AdminUsers = () => {
             onChange={e => setSearchTerm(e.target.value)}
             style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #1e293b' }}
           />
-          <button className={styles.actionBtn} style={{ background: '#ef4444', padding: '0.8rem 1.5rem', margin: 0 }}>Add New User</button>
+          <button 
+            className={styles.actionBtn} 
+            style={{ background: '#ef4444', padding: '0.8rem 1.5rem', margin: 0 }}
+            onClick={() => setAddUserModal(true)}
+          >
+            Add New User
+          </button>
         </div>
       </div>
 
@@ -239,6 +338,81 @@ const AdminUsers = () => {
               <button className={styles.submitBtn} style={{ flex: 1, height: '45px', background: '#10b981' }} onClick={submitBalanceUpdate}>Update</button>
               <button className={styles.cancelBtn} style={{ flex: 1, height: '45px' }} onClick={() => setBalanceModal(null)}>Cancel</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {addUserModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal + " glass animate-fade"} style={{ maxWidth: '500px' }}>
+            <h3 style={{ marginBottom: '1.5rem', marginTop: 0 }}>Add New User</h3>
+            <form onSubmit={handleCreateUser}>
+              <div className={styles.field} style={{ marginBottom: '1rem' }}>
+                <label>Username</label>
+                <input 
+                  type="text" 
+                  value={newUser.username} 
+                  onChange={e => setNewUser({...newUser, username: e.target.value})}
+                  className="glass"
+                  placeholder="e.g. user123"
+                  required
+                />
+              </div>
+
+              <div className={styles.field} style={{ marginBottom: '1rem' }}>
+                <label>Email</label>
+                <input 
+                  type="email" 
+                  value={newUser.email} 
+                  onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  className="glass"
+                  placeholder="user@example.com"
+                  required
+                />
+              </div>
+
+              <div className={styles.field} style={{ marginBottom: '1rem' }}>
+                <label>Password</label>
+                <input 
+                  type="password" 
+                  value={newUser.password} 
+                  onChange={e => setNewUser({...newUser, password: e.target.value})}
+                  className="glass"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div className={styles.field} style={{ marginBottom: '1rem' }}>
+                <label>Starting Balance (₹)</label>
+                <input 
+                  type="number" 
+                  step="0.01"
+                  value={newUser.balance} 
+                  onChange={e => setNewUser({...newUser, balance: e.target.value})}
+                  className="glass"
+                  required
+                />
+              </div>
+
+              <div className={styles.field} style={{ marginBottom: '2rem' }}>
+                <label>Role</label>
+                <select 
+                  value={newUser.role} 
+                  onChange={e => setNewUser({...newUser, role: e.target.value})}
+                  className="glass"
+                >
+                  <option value="User">User</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="submit" className={styles.submitBtn} style={{ flex: 1, height: '45px' }}>Create User</button>
+                <button type="button" className={styles.cancelBtn} style={{ flex: 1, height: '45px' }} onClick={() => setAddUserModal(false)}>Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

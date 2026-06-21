@@ -182,7 +182,7 @@ const TicketsPage = () => {
                 placeholder="Explain your issue here..." 
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
-                style={{ padding: '1rem', borderRadius: '12px', color: 'white', border: 'none', outline: 'none' }}
+                style={{ padding: '1rem', borderRadius: '12px', color: 'var(--foreground)', border: 'none', outline: 'none' }}
                 disabled={loading}
                 required
               ></textarea>
@@ -220,7 +220,7 @@ const TicketsPage = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <p style={{ color: 'white', fontWeight: '500' }}>{t.id} - {t.category}</p>
+                      <p style={{ color: 'var(--foreground)', fontWeight: '500' }}>{t.id} - {t.category}</p>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{t.subject} • {t.createdAt}</span>
                     </div>
                     <span className={`${styles.statusBadge} ${t.status === 'Resolved' ? styles.completed : styles.pending}`} style={{ fontSize: '0.75rem', padding: '0.1rem 0.5rem' }}>

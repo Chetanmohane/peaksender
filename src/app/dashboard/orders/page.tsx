@@ -51,27 +51,37 @@ const OrderHistoryPage = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
 
   useEffect(() => {
-    const loadOrders = () => {
-      const saved = localStorage.getItem('peaksender_orders');
-      if (saved) {
-        setTimeout(() => {
-          try { setOrders(JSON.parse(saved)); } catch (e) { console.error(e); }
-        }, 0);
-      } else {
-        localStorage.setItem('peaksender_orders', JSON.stringify(DEFAULT_ORDERS));
-        setTimeout(() => setOrders(DEFAULT_ORDERS), 0);
+    const loadOrders = async () => {
+      const profileStr = localStorage.getItem('peaksender_profile');
+      let customerName = 'john_doe';
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) customerName = profile.name;
+        } catch (e) {}
+      }
+
+      try {
+        const res = await fetch(`/api/order/me?username=${customerName}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        console.error('Failed to load orders from DB:', err);
       }
     };
     
     loadOrders();
     
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'peaksender_orders') {
-        loadOrders();
-      }
+    window.addEventListener('peaksender_profile_update', loadOrders);
+    window.addEventListener('peaksender_balance_update', loadOrders);
+    return () => {
+      window.removeEventListener('peaksender_profile_update', loadOrders);
+      window.removeEventListener('peaksender_balance_update', loadOrders);
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const filtered = orders.filter(o => {

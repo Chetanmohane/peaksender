@@ -39,7 +39,7 @@ const Features = () => {
     <section className={styles.features}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <h2 className={styles.sectionTitle}>Why Choose <span className="text-gradient">PeakSender?</span></h2>
+          <h2 className={styles.sectionTitle}>Why Choose <span className="text-gradient">ThePeakSMM?</span></h2>
           <p className={styles.sectionSubtitle}>We provide the best tools and services to help you scale your social media presence effectively.</p>
         </div>
         <div className={styles.grid}>

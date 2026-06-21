@@ -52,7 +52,7 @@ const ChildPanelPage = () => {
     window.addEventListener('peaksender_balance_update', handleBalanceUpdate);
 
     // Mount instruction toast
-    showToast('info', 'Instruction: Point your domain DNS nameservers to ns1.peaksender.com and ns2.peaksender.com before purchase.');
+    showToast('info', 'Instruction: Point your domain DNS nameservers to ns1.thepeaksmm.shop and ns2.thepeaksmm.shop before purchase.');
 
     return () => {
       window.removeEventListener('peaksender_balance_update', handleBalanceUpdate);
@@ -143,7 +143,7 @@ const ChildPanelPage = () => {
           </p>
           
           <div className={`${styles.infoCard} glass`} style={{ marginBottom: '2rem', border: '1px solid var(--accent)', background: 'rgba(61, 90, 254, 0.05)' }}>
-            <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Pricing: <span className="text-gradient">₹2,075.00 / Monthly</span></h3>
+            <h3 style={{ color: 'var(--foreground)', marginBottom: '0.5rem' }}>Pricing: <span className="text-gradient">₹2,075.00 / Monthly</span></h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Includes all imported services, automated rate updates, and 24/7 technical support.</p>
           </div>
 
@@ -227,9 +227,9 @@ const ChildPanelPage = () => {
             <h3>Nameserver Instructions</h3>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.8' }}>
               <p>In order to set up your domain, you must configure your domain&apos;s DNS nameservers to:</p>
-              <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', margin: '0.8rem 0', fontFamily: 'monospace', color: 'white' }}>
-                <p>ns1.peaksender.com</p>
-                <p>ns2.peaksender.com</p>
+              <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', margin: '0.8rem 0', fontFamily: 'monospace', color: 'var(--foreground)' }}>
+                <p>ns1.thepeaksmm.shop</p>
+                <p>ns2.thepeaksmm.shop</p>
               </div>
               <p>DNS propagation can take up to 24-48 hours to fully activate globally.</p>
             </div>
@@ -246,7 +246,7 @@ const ChildPanelPage = () => {
                   background: 'rgba(255,255,255,0.02)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>{panel.domain}</span>
+                    <span style={{ color: 'var(--foreground)', fontWeight: 'bold', fontSize: '0.9rem' }}>{panel.domain}</span>
                     <span className={`${styles.statusBadge} ${styles.pending}`} style={{ fontSize: '0.75rem', padding: '0.1rem 0.5rem' }}>
                       {panel.status}
                     </span>

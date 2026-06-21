@@ -52,7 +52,7 @@ const AffiliatesPage = () => {
   }, []);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://peaksender.com/ref/peaksender123");
+    navigator.clipboard.writeText("https://thepeaksmm.shop/ref/thepeaksmm123");
     setCopyText('Copied! ✓');
     showToast('success', 'Referral link copied to clipboard!');
     setTimeout(() => {
@@ -135,9 +135,9 @@ const AffiliatesPage = () => {
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <input 
               readOnly 
-              value="https://peaksender.com/ref/peaksender123" 
+              value="https://thepeaksmm.shop/ref/thepeaksmm123" 
               className="glass" 
-              style={{ flex: 1, padding: '1rem', color: 'white', minWidth: '250px' }} 
+              style={{ flex: 1, padding: '1rem', color: 'var(--foreground)', minWidth: '250px' }} 
             />
             <button 
               type="button"

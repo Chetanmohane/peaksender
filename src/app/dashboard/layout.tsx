@@ -6,13 +6,16 @@ import { usePathname } from 'next/navigation';
 import styles from './dashboard.module.css';
 
 const NAV_LINKS = [
+  // Primary Options (Upper)
   { href: '/dashboard',               icon: '🛒', label: 'New Order' },
-  { href: '/dashboard/mass-order',    icon: '📦', label: 'Mass Order' },
   { href: '/dashboard/orders',        icon: '📋', label: 'Order History' },
-  { href: '/dashboard/subscriptions', icon: '🔄', label: 'Subscriptions' },
   { href: '/dashboard/services',      icon: '💎', label: 'Services' },
   { href: '/dashboard/add-funds',     icon: '💰', label: 'Add Funds' },
-  { href: '/api-docs',                icon: '⚙️',  label: 'API' },
+  
+  // Secondary Options (Lower)
+  { href: '/dashboard/mass-order',    icon: '📦', label: 'Mass Order' },
+  { href: '/dashboard/subscriptions', icon: '🔄', label: 'Subscriptions' },
+  { href: '/dashboard/api',           icon: '⚙️',  label: 'API' },
   { href: '/dashboard/child-panel',   icon: '🚀', label: 'Child Panel' },
   { href: '/dashboard/affiliates',    icon: '🤝', label: 'Affiliates' },
   { href: '/dashboard/tickets',       icon: '🎧', label: 'Tickets' },
@@ -24,21 +27,61 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [balance, setBalance]       = useState<number>(12500.00);
   const [username, setUsername]     = useState('John Doe');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdmin, setIsAdmin]         = useState(false);
+  const [theme, setTheme]             = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('peaksender_theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    return () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('peaksender_theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  useEffect(() => {
+    const fetchUserStats = async (uname: string) => {
+      try {
+        const res = await fetch(`/api/user/stats?username=${encodeURIComponent(uname)}`);
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('peaksender_balance', data.balance.toString());
+          localStorage.setItem('peaksender_total_orders', data.totalOrders.toString());
+          setBalance(data.balance);
+          // Dispatch storage event to trigger other active components/pages
+          window.dispatchEvent(new Event('peaksender_balance_update'));
+        }
+      } catch (err) {
+        console.error('Failed to fetch user stats:', err);
+      }
+    };
+
     setTimeout(() => {
       const savedBalance = localStorage.getItem('peaksender_balance');
-      if (savedBalance === null) {
-        localStorage.setItem('peaksender_balance', '12500.00');
-        setBalance(12500.00);
-      } else {
+      if (savedBalance) {
         setBalance(parseFloat(savedBalance));
       }
       const savedProfile = localStorage.getItem('peaksender_profile');
       if (savedProfile) {
         try {
           const p = JSON.parse(savedProfile);
-          if (p.name) setUsername(p.name);
+          if (p.name) {
+            setUsername(p.name);
+            fetchUserStats(p.name);
+          }
+          setIsAdmin(p.email === 'peaksender27@gmail.com');
         } catch (e) { console.error(e); }
       }
     }, 0);
@@ -47,7 +90,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const b = localStorage.getItem('peaksender_balance');
       if (b) setBalance(parseFloat(b));
       const p = localStorage.getItem('peaksender_profile');
-      if (p) { try { const pr = JSON.parse(p); if (pr.name) setUsername(pr.name); } catch (e) { console.error(e); } }
+      if (p) {
+        try {
+          const pr = JSON.parse(p);
+          if (pr.name) setUsername(pr.name);
+          setIsAdmin(pr.email === 'peaksender27@gmail.com');
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setIsAdmin(false);
+      }
     };
 
     window.addEventListener('storage', sync);
@@ -68,15 +121,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   /* Renders nav links — reused for both desktop and mobile drawers */
   const navItems = (onLinkClick?: () => void) =>
-    NAV_LINKS.map(({ href, icon, label }) => (
+    NAV_LINKS.map((link) => (
       <Link
-        key={href}
-        href={href}
-        className={`${styles.navLink} ${isActive(href) ? styles.active : ''}`}
+        key={link.href}
+        href={link.href}
+        className={`${styles.navLink} ${isActive(link.href) ? styles.active : ''}`}
         onClick={onLinkClick}
       >
-        <span className={styles.icon}>{icon}</span>
-        <span className={styles.navLabel}>{label}</span>
+        <span className={styles.icon}>{link.icon}</span>
+        <span className={styles.navLabel}>{link.label}</span>
       </Link>
     ));
 
@@ -87,13 +140,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Link href="/" className={styles.logo} onClick={onLinkClick}>
           <span className="text-gradient">Peak</span>Sender
         </Link>
-        <div className={styles.adminBadge}>
-          <Link href="/admin" className={styles.adminLink} onClick={onLinkClick}>
-            🔑 Open Admin Panel
-          </Link>
-        </div>
+        {isAdmin && (
+          <div className={styles.adminBadge}>
+            <Link href="/admin" className={styles.adminLink} onClick={onLinkClick}>
+              🔑 Open Admin Panel
+            </Link>
+          </div>
+        )}
       </div>
-      <nav className={styles.nav}>{navItems(onLinkClick)}</nav>
+
+      <nav className={styles.nav}>
+        {navItems(onLinkClick)}
+      </nav>
       <div className={styles.sidebarFooter}>
         <Link href="/auth/login" className={styles.logoutBtn} onClick={onLinkClick}>
           🚪 Logout
@@ -104,6 +162,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className={styles.layout}>
+      {/* Premium Background Ambient Elements */}
+      <div className={styles.gridOverlay} />
+      <div className={styles.bgGlow1} />
+      <div className={styles.bgGlow2} />
+      <div className={styles.floatingShape1} />
+      <div className={styles.floatingShape2} />
+      <div className={styles.floatingShape3} />
 
       {/* ── Desktop Sidebar ── */}
       <aside className={`${styles.sidebar} glass`}>
@@ -142,9 +207,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span />
           </button>
 
-          <div className={styles.headerTitle}>Dashboard</div>
+          <div className={styles.headerTitle}>
+            {(() => {
+              switch (pathname) {
+                case '/dashboard':
+                  return 'New Order';
+                case '/dashboard/orders':
+                  return 'Order History';
+                case '/dashboard/services':
+                  return 'Services';
+                case '/dashboard/add-funds':
+                  return 'Add Funds';
+                case '/dashboard/mass-order':
+                  return 'Mass Order';
+                case '/dashboard/subscriptions':
+                  return 'Subscriptions';
+                case '/dashboard/api':
+                  return 'API Documentation';
+                case '/dashboard/child-panel':
+                  return 'Child Panel';
+                case '/dashboard/affiliates':
+                  return 'Affiliates';
+                case '/dashboard/tickets':
+                  return 'Tickets';
+                case '/dashboard/profile':
+                  return 'Account Settings';
+                default:
+                  return 'Dashboard';
+              }
+            })()}
+          </div>
 
           <div className={styles.userStats}>
+            <button 
+              className={styles.themeToggleBtn}
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <div className={styles.stat}>
               <span className={styles.label}>Balance:</span>
               <span className={styles.value}>

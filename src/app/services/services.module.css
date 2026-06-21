@@ -34,7 +34,7 @@
   flex: 1;
   padding: 0.8rem 1.2rem;
   border-radius: 12px;
-  color: white;
+  color: var(--foreground);
   outline: none;
   font-size: 0.95rem;
 }
@@ -42,10 +42,15 @@
 .select {
   padding: 0.8rem 1.2rem;
   border-radius: 12px;
-  color: white;
+  color: var(--foreground);
   outline: none;
   min-width: 150px;
   cursor: pointer;
+}
+
+.select option {
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .tableWrapper {
@@ -68,13 +73,13 @@
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .table td {
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--foreground);
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -105,18 +110,23 @@
 }
 
 .detailsBtn {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: var(--card-bg);
+  color: var(--foreground);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   font-size: 0.85rem;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
 }
 
 .detailsBtn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--accent);
+  color: var(--foreground);
+}
+
+[data-theme="light"] .detailsBtn:hover {
+  background: rgba(60, 13, 27, 0.04);
 }
 
 @media (max-width: 768px) {

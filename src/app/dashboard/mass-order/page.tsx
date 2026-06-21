@@ -58,7 +58,7 @@ const MassOrderPage = () => {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralMessage(null);
     setReceipts(null);
@@ -73,155 +73,163 @@ const MassOrderPage = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const lines = cleanInput.split('\n');
-      const results: ReceiptItem[] = [];
-      let totalCost = 0;
-      const validOrdersToPlace: { service: Service, quantity: number, link: string, charge: number }[] = [];
+    const lines = cleanInput.split('\n');
+    const results: ReceiptItem[] = [];
+    let totalCost = 0;
+    const validOrdersToPlace: { service: Service, quantity: number, link: string, charge: number }[] = [];
 
-      lines.forEach((line, index) => {
-        const lineNum = index + 1;
-        const rawLine = line.trim();
+    lines.forEach((line, index) => {
+      const lineNum = index + 1;
+      const rawLine = line.trim();
 
-        if (rawLine === '') return;
+      if (rawLine === '') return;
 
-        const parts = rawLine.split('|');
-        if (parts.length < 3) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: 'Invalid format. Use: service_id | quantity | link'
-          });
-          return;
-        }
-
-        const serviceId = parseInt(parts[0].trim());
-        const quantity = parseInt(parts[1].trim());
-        const link = parts[2].trim();
-
-        if (isNaN(serviceId)) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: 'Invalid Service ID (must be a number)'
-          });
-          return;
-        }
-
-        if (isNaN(quantity) || quantity <= 0) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: 'Invalid quantity (must be greater than 0)'
-          });
-          return;
-        }
-
-        if (!link) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: 'Missing link'
-          });
-          return;
-        }
-
-        // Find service in SMM database
-        const service = services.find(s => s.id === serviceId);
-        if (!service) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: `Service ID ${serviceId} not found in database`
-          });
-          return;
-        }
-
-        if (quantity < service.min || quantity > service.max) {
-          results.push({
-            lineNum,
-            rawLine,
-            status: 'failed',
-            error: `Quantity out of bounds. Min: ${service.min}, Max: ${service.max}`
-          });
-          return;
-        }
-
-        // Calculate Cost
-        const charge = (quantity * service.rate) / 1000;
-        totalCost += charge;
-
-        validOrdersToPlace.push({
-          service,
-          quantity,
-          link,
-          charge
+      const parts = rawLine.split('|');
+      if (parts.length < 3) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: 'Invalid format. Use: service_id | quantity | link'
         });
-      });
-
-      const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
-
-      if (currentBalance < totalCost) {
-        const errMsg = `Insufficient balance for all orders! Total required: ₹${totalCost.toFixed(2)}, available: ₹${currentBalance.toFixed(2)}.`;
-        setGeneralMessage({
-          type: 'error',
-          text: errMsg
-        });
-        showToast('error', errMsg);
-        setLoading(false);
         return;
       }
 
-      // Execute placements
-      try {
-        const savedOrdersStr = localStorage.getItem('peaksender_orders');
-        const orderList = savedOrdersStr ? JSON.parse(savedOrdersStr) : [];
-        let totalPlacedCount = 0;
+      const serviceId = parseInt(parts[0].trim());
+      const quantity = parseInt(parts[1].trim());
+      const link = parts[2].trim();
 
-        const now = new Date();
-        const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
-
-        // Place each valid order
-        validOrdersToPlace.forEach(order => {
-          const newOrderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-          
-          const newOrderRecord = {
-            id: newOrderId,
-            serviceId: order.service.id,
-            serviceName: order.service.name,
-            link: order.link,
-            quantity: order.quantity,
-            charge: order.charge,
-            status: 'Pending' as const,
-            createdAt: dateStr
-          };
-
-          orderList.unshift(newOrderRecord);
-          totalPlacedCount++;
-
-          results.push({
-            lineNum: results.length + 1, // mapping in order
-            rawLine: `${order.service.id} | ${order.quantity} | ${order.link}`,
-            status: 'success',
-            orderId: newOrderId,
-            serviceName: order.service.name,
-            charge: order.charge
-          });
+      if (isNaN(serviceId)) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: 'Invalid Service ID (must be a number)'
         });
+        return;
+      }
+
+      if (isNaN(quantity) || quantity <= 0) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: 'Invalid quantity (must be greater than 0)'
+        });
+        return;
+      }
+
+      if (!link) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: 'Missing link'
+        });
+        return;
+      }
+
+      // Find service in SMM database
+      const service = services.find(s => s.id === serviceId);
+      if (!service) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: `Service ID ${serviceId} not found in database`
+        });
+        return;
+      }
+
+      if (quantity < service.min || quantity > service.max) {
+        results.push({
+          lineNum,
+          rawLine,
+          status: 'failed',
+          error: `Quantity out of bounds. Min: ${service.min}, Max: ${service.max}`
+        });
+        return;
+      }
+
+      // Calculate Cost
+      const charge = (quantity * service.rate) / 1000;
+      totalCost += charge;
+
+      validOrdersToPlace.push({
+        service,
+        quantity,
+        link,
+        charge
+      });
+    });
+
+    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0');
+
+    if (currentBalance < totalCost) {
+      const errMsg = `Insufficient balance for all orders! Total required: ₹${totalCost.toFixed(2)}, available: ₹${currentBalance.toFixed(2)}.`;
+      setGeneralMessage({
+        type: 'error',
+        text: errMsg
+      });
+      showToast('error', errMsg);
+      setLoading(false);
+      return;
+    }
+
+    if (validOrdersToPlace.length === 0) {
+      setReceipts(results);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const profileStr = localStorage.getItem('peaksender_profile');
+      let customerName = 'john_doe';
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) customerName = profile.name;
+        } catch (e) {}
+      }
+
+      const res = await fetch('/api/order/mass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: customerName,
+          orders: validOrdersToPlace.map(o => ({
+            serviceId: o.service.id,
+            serviceName: o.service.name,
+            link: o.link,
+            quantity: o.quantity,
+            charge: o.charge
+          }))
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const newBalance = data.balance;
+        const totalPlacedCount = data.placedOrders.length;
 
         // Deduct balance and update count
-        const newBalance = currentBalance - totalCost;
         localStorage.setItem('peaksender_balance', newBalance.toString());
 
-        const savedTotalOrders = parseInt(localStorage.getItem('peaksender_total_orders') || '1245');
+        const savedTotalOrders = parseInt(localStorage.getItem('peaksender_total_orders') || '0');
         localStorage.setItem('peaksender_total_orders', (savedTotalOrders + totalPlacedCount).toString());
 
-        localStorage.setItem('peaksender_orders', JSON.stringify(orderList));
+        // Map successful database order IDs back into results receipt items
+        data.placedOrders.forEach((placed: any, idx: number) => {
+          results.push({
+            lineNum: results.length + 1,
+            rawLine: `${placed.serviceId} | ${placed.quantity} | ${placed.link}`,
+            status: 'success',
+            orderId: placed.orderId,
+            serviceName: placed.serviceName,
+            charge: parseFloat(placed.charge)
+          });
+        });
 
         // Sync header balance
         setBalance(newBalance);
@@ -236,15 +244,19 @@ const MassOrderPage = () => {
           text: successMsg
         });
         showToast('success', successMsg);
-      } catch (err) {
-        console.error(err);
-        const errMsg = 'Failed to save orders to database.';
+      } else {
+        const errMsg = data.error || 'Failed to place mass orders.';
         setGeneralMessage({ type: 'error', text: errMsg });
         showToast('error', errMsg);
-      } finally {
-        setLoading(false);
       }
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      const errMsg = 'Error connecting to server. Please try again.';
+      setGeneralMessage({ type: 'error', text: errMsg });
+      showToast('error', errMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -277,7 +289,7 @@ const MassOrderPage = () => {
                 placeholder="16440 | 1000 | https://instagram.com/user&#10;12600 | 500 | https://tiktok.com/@video123"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                style={{ padding: '1.5rem', fontSize: '1rem', color: 'white', border: 'none', outline: 'none', borderRadius: '16px' }}
+                style={{ padding: '1.5rem', fontSize: '1rem', color: 'var(--foreground)', border: 'none', outline: 'none', borderRadius: '16px' }}
                 disabled={loading}
                 required
               ></textarea>
@@ -314,7 +326,7 @@ const MassOrderPage = () => {
                     <code style={{ fontSize: '0.85rem', display: 'block', color: '#cbd5e1', marginBottom: '0.5rem' }}>&quot;{rec.rawLine}&quot;</code>
                     {rec.status === 'success' ? (
                       <div style={{ fontSize: '0.85rem' }}>
-                        <p style={{ color: 'white', fontWeight: '500' }}>Order Placed: <span style={{ color: 'var(--accent)' }}>{rec.orderId}</span></p>
+                        <p style={{ color: 'var(--foreground)', fontWeight: '500' }}>Order Placed: <span style={{ color: 'var(--accent)' }}>{rec.orderId}</span></p>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{rec.serviceName}</p>
                         <p style={{ color: '#10b981', fontWeight: 'bold', marginTop: '0.2rem' }}>Charge: ₹{rec.charge?.toFixed(2)}</p>
                       </div>

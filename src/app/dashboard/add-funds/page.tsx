@@ -59,6 +59,28 @@ const AddFundsPage = () => {
       }, 0);
     }
 
+    // Fetch live user balance from DB
+    setTimeout(() => {
+      const profileStr = localStorage.getItem('peaksender_profile');
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) {
+            fetch(`/api/user/stats?username=${encodeURIComponent(profile.name)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  localStorage.setItem('peaksender_balance', data.balance.toString());
+                  setBalance(data.balance);
+                  window.dispatchEvent(new Event('peaksender_balance_update'));
+                }
+              })
+              .catch(err => console.error('Failed to fetch user stats on add-funds load:', err));
+          }
+        } catch (e) {}
+      }
+    }, 0);
+
     // Load Recent Deposits
     const savedDeposits = localStorage.getItem('peaksender_deposits');
     if (savedDeposits) {
@@ -193,7 +215,7 @@ const AddFundsPage = () => {
                 />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <strong style={{ color: 'white', display: 'block', fontSize: '1rem' }}>Scan to Pay via UPI</strong>
+                <strong style={{ color: 'var(--foreground)', display: 'block', fontSize: '1rem' }}>Scan to Pay via UPI</strong>
                 <span style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold' }}>BHIM / GPay / PhonePe / Paytm</span>
               </div>
             </div>
@@ -263,7 +285,7 @@ const AddFundsPage = () => {
               {recentDeposits.map((dep, index) => (
                 <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                   <div>
-                    <p style={{ color: 'white', fontWeight: '500' }}>₹{dep.amount.toFixed(2)}</p>
+                    <p style={{ color: 'var(--foreground)', fontWeight: '500' }}>₹{dep.amount.toFixed(2)}</p>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>UTR: {dep.transactionId}</span>
                     <br />
                     <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{dep.date}</span>

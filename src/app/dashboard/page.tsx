@@ -123,15 +123,32 @@ const NewOrderPage = () => {
       const savedBalance = localStorage.getItem('peaksender_balance');
       if (savedBalance) {
         setBalance(parseFloat(savedBalance));
-      } else {
-        localStorage.setItem('peaksender_balance', '12500.00');
       }
 
       const savedTotalOrders = localStorage.getItem('peaksender_total_orders');
       if (savedTotalOrders) {
         setTotalOrdersCount(parseInt(savedTotalOrders));
-      } else {
-        localStorage.setItem('peaksender_total_orders', '1245');
+      }
+
+      const profileStr = localStorage.getItem('peaksender_profile');
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) {
+            fetch(`/api/user/stats?username=${encodeURIComponent(profile.name)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  localStorage.setItem('peaksender_balance', data.balance.toString());
+                  localStorage.setItem('peaksender_total_orders', data.totalOrders.toString());
+                  setBalance(data.balance);
+                  setTotalOrdersCount(data.totalOrders);
+                  window.dispatchEvent(new Event('peaksender_balance_update'));
+                }
+              })
+              .catch(err => console.error('Failed to fetch user stats on page load:', err));
+          }
+        } catch (e) {}
       }
     }, 0);
 
@@ -200,85 +217,64 @@ const NewOrderPage = () => {
     setLoading(true);
     setMessage(null);
 
-    // Simulate SMM provider latency
-    setTimeout(() => {
-      try {
-        const newBalance = currentBalance - totalPrice;
-        const newTotalOrders = totalOrdersCount + 1;
-        const newOrderId = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-        
-        // Save new balance and orders count
-        localStorage.setItem('peaksender_balance', newBalance.toString());
-        localStorage.setItem('peaksender_total_orders', newTotalOrders.toString());
+    try {
+      const profileStr = localStorage.getItem('peaksender_profile');
+      let customerName = 'john_doe';
+      if (profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          if (profile.name) customerName = profile.name;
+        } catch (e) {}
+      }
 
-        // Save order to history
-        const savedOrdersStr = localStorage.getItem('peaksender_orders');
-        const orderList = savedOrdersStr ? JSON.parse(savedOrdersStr) : [
-          {
-            id: "ORD-7721",
-            serviceId: 16440,
-            serviceName: "➤ Instagram Followers »【 Real - HQ Accounts - 50K - 100K+ Per Day - No Drop - Instant - Lifetime Refill Button♻️] - Latest Updated🔥🚫",
-            link: "https://instagram.com/peaksender",
-            quantity: 1000,
-            charge: 51.96,
-            status: 'Completed',
-            createdAt: "2026-05-10 14:20"
-          },
-          {
-            id: "ORD-9932",
-            serviceId: 12600,
-            serviceName: "⭆ Tiktok Likes【 HQ Accounts - 50K - 100K+ Per Day🚀 - Instant - No Refill ]🔥",
-            link: "https://tiktok.com/@video123",
-            quantity: 5000,
-            charge: 97.85,
-            status: 'Pending',
-            createdAt: "2026-05-11 09:45"
-          }
-        ];
-
-        // Format Date
-        const now = new Date();
-        const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
-
-        const newOrder = {
-          id: newOrderId,
+      const res = await fetch('/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           serviceId: selectedService.id,
           serviceName: selectedService.name,
           link,
           quantity,
           charge: totalPrice,
-          status: 'Pending' as const,
-          createdAt: dateStr
-        };
+          customer: customerName
+        })
+      });
 
-        orderList.unshift(newOrder);
-        localStorage.setItem('peaksender_orders', JSON.stringify(orderList));
+      const data = await res.json();
+
+      if (data.success) {
+        const newBalance = data.balance;
+        const newTotalOrders = totalOrdersCount + 1;
+
+        // Save new balance and orders count
+        localStorage.setItem('peaksender_balance', newBalance.toString());
+        localStorage.setItem('peaksender_total_orders', newTotalOrders.toString());
 
         // Update Component States
         setBalance(newBalance);
         setTotalOrdersCount(newTotalOrders);
         setLink('');
         setQuantity(0);
-        
-        const successMsg = `Order #${newOrderId} placed successfully!`;
+
+        const successMsg = `Order #${data.orderId} placed successfully!`;
         setMessage({ type: 'success', text: successMsg });
         showToast('success', successMsg);
-        // Auto-dismiss success alert after 5 seconds
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
 
         // Dispatch storage update events to coordinate layout header balance
         window.dispatchEvent(new Event('peaksender_balance_update'));
-      } catch (err) {
-        console.error(err);
-        const errMsg = 'An error occurred while placing your order.';
+      } else {
+        const errMsg = data.error || 'An error occurred while placing your order.';
         setMessage({ type: 'error', text: errMsg });
         showToast('error', errMsg);
-      } finally {
-        setLoading(false);
       }
-    }, 800);
+    } catch (err) {
+      console.error(err);
+      const errMsg = 'An error occurred while placing your order.';
+      setMessage({ type: 'error', text: errMsg });
+      showToast('error', errMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const totalPrice = selectedService ? (quantity * selectedService.rate) / 1000 : 0;
@@ -436,7 +432,7 @@ const NewOrderPage = () => {
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 fontWeight: 'bold',
-                color: 'white' 
+                color: 'var(--foreground)' 
               }}>
                 <span>12m</span>
               </div>

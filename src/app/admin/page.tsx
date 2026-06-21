@@ -13,35 +13,22 @@ const AdminOverview = () => {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadDashboardData = () => {
-      // Load Orders
-      const savedOrders = localStorage.getItem('peaksender_orders');
-      let orders = [];
-      if (savedOrders) {
-        try {
-          orders = JSON.parse(savedOrders);
-        } catch(e) {}
+    const loadDashboardData = async () => {
+      try {
+        const res = await fetch('/api/admin/stats');
+        const data = await res.json();
+        if (data.success) {
+          setStats({
+            totalSales: data.totalSales,
+            totalUsers: data.totalUsers,
+            totalOrders: data.totalOrders,
+            pendingTickets: data.pendingTickets
+          });
+          setRecentOrders(data.recentOrders);
+        }
+      } catch (err) {
+        console.error('Failed to load admin stats:', err);
       }
-      
-      const sales = orders.reduce((acc: number, cur: any) => acc + (parseFloat(cur.charge) || 0), 0);
-      
-      // Load Users
-      const savedUsers = localStorage.getItem('peaksender_admin_users');
-      let usersCount = 2; // Default if not found
-      if (savedUsers) {
-        try {
-          usersCount = JSON.parse(savedUsers).length;
-        } catch(e) {}
-      }
-
-      setStats({
-        totalSales: sales,
-        totalUsers: usersCount,
-        totalOrders: orders.length,
-        pendingTickets: 12 // Mock data for tickets
-      });
-
-      setRecentOrders(orders.slice(0, 5));
     };
 
     loadDashboardData();
@@ -53,7 +40,12 @@ const AdminOverview = () => {
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('peaksender_balance_update', loadDashboardData);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('peaksender_balance_update', loadDashboardData);
+    };
   }, []);
 
   return (

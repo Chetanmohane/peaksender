@@ -201,7 +201,7 @@ const ProfileSettingsPage = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Discount Rate:</span>
-                <span style={{ color: 'white', fontWeight: 'bold' }}>5.0% flat</span>
+                <span style={{ color: 'var(--foreground)', fontWeight: 'bold' }}>5.0% flat</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Support Priority:</span>
@@ -209,7 +209,7 @@ const ProfileSettingsPage = () => {
               </div>
             </div>
             <hr className={styles.divider} style={{ margin: '1.5rem 0', opacity: 0.05 }} />
-            <h4 style={{ color: 'white', marginBottom: '0.5rem', fontSize: '0.9rem' }}>VIP Perks Details</h4>
+            <h4 style={{ color: 'var(--foreground)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>VIP Perks Details</h4>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               As a PeakSender VIP Elite member, you receive premium discounts on bulk orders, automatic API-keys access, and instantaneous support response.
             </p>

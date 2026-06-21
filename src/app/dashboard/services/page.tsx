@@ -27,7 +27,7 @@ const DashboardServicesPage = () => {
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'white', marginBottom: '1.5rem' }}>
+      <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '1.5rem' }}>
         Available Services
       </h1>
 

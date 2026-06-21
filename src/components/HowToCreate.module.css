@@ -1,0 +1,104 @@
+.section {
+  padding: 100px 2rem;
+  background: #08031a; /* Dark background matching the hero bottom wave fill */
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.5px;
+  color: white;
+}
+
+.subtitle {
+  font-size: 1.15rem;
+  color: #94a3b8; /* Slate gray */
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2.5rem;
+}
+
+.card {
+  position: relative;
+  padding: 3.5rem 2rem 2.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  background: rgba(99, 102, 241, 0.05);
+  border-color: #6366f1; /* Neon border on hover */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.stepNum {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.8rem;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: rgba(99, 102, 241, 0.15); /* Soft neon step number */
+  font-family: 'Outfit', sans-serif;
+}
+
+.icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+  filter: drop-shadow(0 5px 10px rgba(99, 102, 241, 0.2));
+}
+
+.cardTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.cardDesc {
+  font-size: 0.95rem;
+  color: #94a3b8; /* Highly visible slate description */
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 1.5rem;
+  }
+  .title {
+    font-size: 2.2rem;
+  }
+  .header {
+    margin-bottom: 3rem;
+  }
+  .card {
+    padding: 3rem 1.5rem 2rem;
+  }
+}

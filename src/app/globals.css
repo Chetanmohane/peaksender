@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
-:root {
+:root, [data-theme="dark"] {
   --background: #0a0b10;
   --foreground: #ffffff;
   --card-bg: rgba(18, 20, 29, 0.7);
@@ -12,6 +12,20 @@
   --nav-bg: rgba(10, 11, 16, 0.8);
   --glass: blur(12px) saturate(180%);
   --gradient-primary: linear-gradient(135deg, #3d5afe 0%, #7c4dff 100%);
+}
+
+[data-theme="light"] {
+  --background: #fff5f6;
+  --foreground: #2d050f;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(45, 5, 15, 0.08);
+  --accent: #d81b60;
+  --accent-glow: rgba(216, 27, 96, 0.22);
+  --accent-secondary: #ec407a;
+  --text-secondary: #5c3b44;
+  --nav-bg: rgba(255, 255, 255, 0.85);
+  --glass: blur(12px) saturate(180%);
+  --gradient-primary: linear-gradient(135deg, #d81b60 0%, #ec407a 100%);
 }
 
 * {
@@ -70,6 +84,12 @@ button {
   backdrop-filter: var(--glass);
   -webkit-backdrop-filter: var(--glass);
   border: 1px solid var(--card-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="light"] .glass {
+  box-shadow: 0 10px 30px rgba(216, 27, 96, 0.05);
 }
 
 .text-gradient {
