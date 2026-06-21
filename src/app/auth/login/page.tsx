@@ -69,8 +69,8 @@ const LoginPage = () => {
 
       <div className={`${styles.authCard} glass`}>
         <div className={styles.header}>
-          <Link href="/" className={styles.logo}>
-            <span className="text-gradient">ThePeak</span>SMM
+          <Link href="/" className={styles.logo} style={{ display: 'inline-flex', justifyContent: 'center', width: '100%' }}>
+            <img src="/logo.jpg" alt="The SMM Logo" style={{ height: '70px', width: 'auto', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }} />
           </Link>
           <h1>Welcome Back</h1>
           <p>Login to your account to continue</p>

@@ -137,8 +137,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const sidebarInner = (onLinkClick?: () => void) => (
     <>
       <div className={styles.sidebarHeader}>
-        <Link href="/" className={styles.logo} onClick={onLinkClick}>
-          <span className="text-gradient">ThePeak</span>SMM
+        <Link href="/" className={styles.logo} onClick={onLinkClick} style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/logo.jpg" alt="The SMM Logo" style={{ height: '48px', width: 'auto', borderRadius: '8px' }} />
         </Link>
         {isAdmin && (
           <div className={styles.adminBadge}>

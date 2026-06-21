@@ -77,8 +77,8 @@ const Navbar = () => {
     <>
       <nav className={`${styles.navbar} glass`} style={{ borderBottom: scrolled ? '1px solid var(--card-border)' : '1px solid transparent' }}>
         <div className={styles.container}>
-          <Link href="/" className={styles.logo}>
-            <span className="text-gradient">ThePeak</span>SMM
+          <Link href="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.jpg" alt="The SMM Logo" style={{ height: '44px', width: 'auto', borderRadius: '8px' }} />
           </Link>
 
           {/* Desktop Links */}
@@ -141,8 +141,8 @@ const Navbar = () => {
       {/* Mobile Drawer */}
       <div className={`${styles.mobileDrawer} ${isOpen ? styles.mobileDrawerOpen : ''}`}>
         <div className={styles.drawerHeader}>
-          <Link href="/" className={styles.logo} onClick={closeMenu}>
-            <span className="text-gradient">ThePeak</span>SMM
+          <Link href="/" className={styles.logo} onClick={closeMenu} style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.jpg" alt="The SMM Logo" style={{ height: '38px', width: 'auto', borderRadius: '6px' }} />
           </Link>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button 
