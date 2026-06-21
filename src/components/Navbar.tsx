@@ -9,12 +9,37 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const savedTheme = localStorage.getItem('peaksender_theme') as 'light' | 'dark' | null;
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+    };
+    syncTheme();
+    window.addEventListener('peaksender_theme_update', syncTheme);
+    window.addEventListener('storage', syncTheme);
+    return () => {
+      window.removeEventListener('peaksender_theme_update', syncTheme);
+      window.removeEventListener('storage', syncTheme);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('peaksender_theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    window.dispatchEvent(new Event('peaksender_theme_update'));
+  };
 
   useEffect(() => {
     const sync = () => {
@@ -50,7 +75,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`${styles.navbar} glass`} style={{ borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255,255,255,0.03)' }}>
+      <nav className={`${styles.navbar} glass`} style={{ borderBottom: scrolled ? '1px solid var(--card-border)' : '1px solid transparent' }}>
         <div className={styles.container}>
           <Link href="/" className={styles.logo}>
             <span className="text-gradient">ThePeak</span>SMM
@@ -63,6 +88,13 @@ const Navbar = () => {
             {isAdmin && (
               <Link href="/admin" className={styles.link} style={{ color: '#ef4444', fontWeight: 'bold' }}>Admin</Link>
             )}
+            <button 
+              className={styles.themeToggleBtn}
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <div className={styles.auth}>
               {isLoggedIn ? (
                 <>
@@ -112,7 +144,17 @@ const Navbar = () => {
           <Link href="/" className={styles.logo} onClick={closeMenu}>
             <span className="text-gradient">ThePeak</span>SMM
           </Link>
-          <button className={styles.closeBtn} onClick={closeMenu} aria-label="Close menu">✕</button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button 
+              className={styles.themeToggleBtn}
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              style={{ width: '36px', height: '36px', fontSize: '1rem' }}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            <button className={styles.closeBtn} onClick={closeMenu} aria-label="Close menu">✕</button>
+          </div>
         </div>
         <nav className={styles.mobileNav}>
           <Link href="/services" className={styles.mobileLink} onClick={closeMenu}>💎 Services</Link>
