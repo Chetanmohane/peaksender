@@ -105,8 +105,18 @@ const NewOrderPage = () => {
             localStorage.setItem('panel_services', JSON.stringify(mapped));
             localStorage.setItem('peaksender_price_discount_40_applied', 'true');
             
-            setServices(mapped);
-            const cats = Array.from(new Set(mapped.map((s: Service) => s.category))) as string[];
+            const activeServices = mapped.map((s: any) => ({
+              id: s.id,
+              category: s.category,
+              name: s.name,
+              rate: parseFloat(s.rate),
+              min: s.min || 10,
+              max: s.max || 10000,
+              description: s.description || ''
+            }));
+            
+            setServices(activeServices);
+            const cats = Array.from(new Set(activeServices.map((s: Service) => s.category))) as string[];
             setCategories(cats);
             if (cats.length > 0) {
               setSelectedCategory(cats[0]);
