@@ -21,8 +21,8 @@ const AdminSettings = () => {
     razorpaySecret: '',
     paytmMid: '',
     paytmKey: '',
-    phonepeUpiId: 'paytm.slay1so@pty',
-    phonepeMerchantName: 'PUSHPA',
+    phonepeUpiId: '2729mohane2729@fam',
+    phonepeMerchantName: 'Chetan Mohane',
     usdToInr: '83',
     minDeposit: '10', // Minimum payment amount in INR
     metaTitle: 'ThePeakSMM | Best SMM Panel',
