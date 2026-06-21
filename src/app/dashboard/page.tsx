@@ -39,7 +39,7 @@ const NewOrderPage = () => {
   const [quantity, setQuantity] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [balance, setBalance] = useState<number>(12500.00);
+  const [balance, setBalance] = useState<number>(0.00);
   const [totalOrdersCount, setTotalOrdersCount] = useState<number>(1245);
 
   useEffect(() => {
@@ -215,7 +215,7 @@ const NewOrderPage = () => {
     }
 
     const totalPrice = (quantity * selectedService.rate) / 1000;
-    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
+    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
 
     if (currentBalance < totalPrice) {
       const errMsg = `Insufficient balance! You need ₹${totalPrice.toFixed(2)} but your balance is ₹${currentBalance.toFixed(2)}. Please Add Funds.`;

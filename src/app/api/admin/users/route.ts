@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
     // 3. Set balance and role defaults if not provided
-    const startingBalance = balance !== undefined ? parseFloat(balance) : 12500.00;
+    const startingBalance = balance !== undefined ? parseFloat(balance) : 0.00;
     const userRole = role || 'User';
 
     // 4. Insert new user into database

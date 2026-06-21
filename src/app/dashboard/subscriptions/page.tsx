@@ -198,7 +198,7 @@ const SubscriptionsPage = () => {
     }
 
     const setupFee = 100.00; // Flat ₹100 setup fee
-    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
+    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
 
     if (currentBalance < setupFee) {
       const errMsg = `Insufficient balance! Retainer setup requires ₹${setupFee.toFixed(2)} but your balance is ₹${currentBalance.toFixed(2)}.`;

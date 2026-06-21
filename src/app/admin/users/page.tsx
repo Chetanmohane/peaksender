@@ -24,7 +24,7 @@ const AdminUsers = () => {
     username: '',
     email: '',
     password: '',
-    balance: '12500.00',
+    balance: '0.00',
     role: 'User'
   });
 
@@ -75,7 +75,7 @@ const AdminUsers = () => {
           username: '',
           email: '',
           password: '',
-          balance: '12500.00',
+          balance: '0.00',
           role: 'User'
         });
         loadUsers();

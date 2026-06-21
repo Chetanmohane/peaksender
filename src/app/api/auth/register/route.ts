@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       user: {
         name: username,
         email: email,
-        balance: 12500.00,
+        balance: 0.00,
         role: role
       }
     });

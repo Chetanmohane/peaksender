@@ -17,7 +17,7 @@ type Deposit = {
 const AddFundsPage = () => {
   const [amount, setAmount] = useState<number>(0);
   const [transactionId, setTransactionId] = useState('');
-  const [balance, setBalance] = useState<number>(12500.00);
+  const [balance, setBalance] = useState<number>(0.00);
   const [recentDeposits, setRecentDeposits] = useState<Deposit[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [minDeposit, setMinDeposit] = useState<number>(10);

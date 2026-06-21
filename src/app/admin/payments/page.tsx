@@ -52,7 +52,7 @@ const AdminPayments = () => {
       targetDep.status = 'Completed';
 
       // Credit User Balance
-      const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
+      const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
       const updatedBalance = currentBalance + targetDep.amount;
       localStorage.setItem('peaksender_balance', updatedBalance.toString());
 
@@ -111,7 +111,7 @@ const AdminPayments = () => {
       return;
     }
 
-    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
+    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
     const updatedBalance = currentBalance + amount;
     localStorage.setItem('peaksender_balance', updatedBalance.toString());
 

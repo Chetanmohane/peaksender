@@ -28,7 +28,7 @@ const MassOrderPage = () => {
   const [inputText, setInputText] = useState('');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(false);
-  const [balance, setBalance] = useState<number>(12500.00);
+  const [balance, setBalance] = useState<number>(0.00);
   const [receipts, setReceipts] = useState<ReceiptItem[] | null>(null);
   const [generalMessage, setGeneralMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 

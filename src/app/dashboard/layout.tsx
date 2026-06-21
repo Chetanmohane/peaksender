@@ -24,7 +24,7 @@ const NAV_LINKS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [balance, setBalance]       = useState<number>(12500.00);
+  const [balance, setBalance]       = useState<number>(0.00);
   const [username, setUsername]     = useState('John Doe');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin]         = useState(false);

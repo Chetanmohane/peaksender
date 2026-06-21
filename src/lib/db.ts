@@ -219,7 +219,7 @@ async function executeRedisQuery(sql: string, params: any[] = []): Promise<[any,
       username,
       email,
       password,
-      balance: 12500.00,
+      balance: 0.00,
       role,
       status: 'Active',
       createdAt: new Date().toISOString()
@@ -446,7 +446,7 @@ async function initMySQLDB(dbPool: mysql.Pool) {
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        balance DECIMAL(15, 2) NOT NULL DEFAULT 12500.00,
+        balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
         role VARCHAR(50) NOT NULL DEFAULT 'User',
         status VARCHAR(50) NOT NULL DEFAULT 'Active',
         createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

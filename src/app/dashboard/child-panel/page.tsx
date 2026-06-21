@@ -20,7 +20,7 @@ const ChildPanelPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
-  const [balance, setBalance] = useState<number>(12500.00);
+  const [balance, setBalance] = useState<number>(0.00);
   const [childPanels, setChildPanels] = useState<ChildPanel[]>([]);
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const ChildPanelPage = () => {
     }
 
     const price = 2075.00; // $25 in INR
-    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '12500.00');
+    const currentBalance = parseFloat(localStorage.getItem('peaksender_balance') || '0.00');
 
     if (currentBalance < price) {
       const errMsg = `Insufficient balance! Child Panel rent is ₹${price.toFixed(2)} (approx. $25) but your balance is ₹${currentBalance.toFixed(2)}. Please Add Funds.`;

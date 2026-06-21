@@ -48,7 +48,7 @@ const Hero = () => {
         
         // Save initial balance if not exists
         if (!localStorage.getItem('peaksender_balance')) {
-          localStorage.setItem('peaksender_balance', data.user?.balance?.toString() || '12500.00');
+          localStorage.setItem('peaksender_balance', data.user?.balance?.toString() || '0.00');
         }
 
         window.dispatchEvent(new Event('peaksender_profile_update'));
