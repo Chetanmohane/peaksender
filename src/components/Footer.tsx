@@ -8,8 +8,8 @@ const Footer = () => {
       <div className={styles.container}>
         <div className={styles.top}>
           <div className={styles.brand}>
-            <Link href="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center' }}>
-              <img src="/logo.jpg" alt="The SMM Logo" style={{ height: '40px', width: 'auto', borderRadius: '8px' }} />
+            <Link href="/" className={styles.logo}>
+              <span className="text-gradient">The Peak</span> SMM
             </Link>
             <p className={styles.tagline}>
               The world&apos;s leading social media marketing panel. 

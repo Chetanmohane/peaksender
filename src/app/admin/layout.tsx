@@ -116,9 +116,8 @@ export default function AdminLayout({
       {/* Desktop Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <Link href="/" className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <img src="/logo.jpg" alt="Logo" style={{ height: '34px', width: 'auto', borderRadius: '6px' }} />
-            <span style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: '800' }}>Admin</span>
+          <Link href="/" className={styles.logo}>
+            <span style={{ color: '#ef4444' }}>Admin</span> SMM
           </Link>
         </div>
         <nav className={styles.nav}>{navItems()}</nav>
@@ -138,9 +137,8 @@ export default function AdminLayout({
           <button onClick={closeSidebar} className={styles.closeBtn} aria-label="Close admin menu">✕</button>
         </div>
         <div className={styles.sidebarHeader}>
-          <Link href="/" className={styles.logo} onClick={closeSidebar} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <img src="/logo.jpg" alt="Logo" style={{ height: '34px', width: 'auto', borderRadius: '6px' }} />
-            <span style={{ color: '#ef4444', fontSize: '1.2rem', fontWeight: '800' }}>Admin</span>
+          <Link href="/" className={styles.logo} onClick={closeSidebar}>
+            <span style={{ color: '#ef4444' }}>Admin</span> SMM
           </Link>
         </div>
         <nav className={styles.nav}>{navItems(closeSidebar)}</nav>
